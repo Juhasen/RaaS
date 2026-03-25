@@ -33,12 +33,20 @@ graph TD
     BS -- "booking.created" --> EB["📟 Event Bus (RabbitMQ/Kafka)"]
     EB -- "notify" --> NS
     EB -- "process" --> PS
-    
-    US [(PostgreSQL)]
-    LS [(MongoDB)]
-    BS [(PostgreSQL)]
-    RS [(PostgreSQL)]
-    FS [(Redis)]
+
+    subgraph "Data Stores"
+        US_DB[(PostgreSQL)]
+        LS_DB[(MongoDB)]
+        BS_DB[(PostgreSQL)]
+        RS_DB[(PostgreSQL)]
+        FS_DB[(Redis)]
+    end
+
+    US -.-> US_DB
+    LS -.-> LS_DB
+    BS -.-> BS_DB
+    RS -.-> RS_DB
+    FS -.-> FS_DB
 ```
 
 ---
