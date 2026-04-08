@@ -1,133 +1,142 @@
 # RaaS – Rental as a Service
-### 🚀 Skalowalny System Wynajmu w Architekturze Mikroserwisowej
 
-[![Status: Development](https://img.shields.io/badge/Status-Development-yellow.svg)](https://github.com/) 
-[![Stack: Microservices](https://img.shields.io/badge/Architecture-Microservices-blue.svg)](https://github.com/) 
+### 🚀 Scalable Rental System in a Microservices Architecture
+
+[![Status: Development](https://img.shields.io/badge/Status-Development-yellow.svg)](https://github.com/)
+[![Stack: Microservices](https://img.shields.io/badge/Architecture-Microservices-blue.svg)](https://github.com/)
 [![Backend: Go/Node/Python](https://img.shields.io/badge/Backend-Polyglot-lightgrey.svg)](https://github.com/)
 
-**RaaS** to kompleksowa, rozproszona platforma typu marketplace (Airbnb/OLX/Otodom clone), zaprojektowana do elastycznego wynajmu dowolnych zasobów (samochody, mieszkania, sprzęt). Projekt kładzie nacisk na nowoczesne wzorce projektowe, komunikację asynchroniczną i wysoką dostępność.
+**RaaS** is a comprehensive, distributed marketplace platform (Airbnb/OLX/Otodom clone), designed for flexible rental of any resources (cars, apartments, equipment). The project emphasizes modern design patterns, asynchronous communication, and high availability.
 
 ---
 
-## 🏗️ Architektura Systemu
+## 🏗️ System Architecture
 
-System składa się z niezależnych mikroserwisów komunikujących się ze sobą synchronicznie (REST/gRPC) oraz asynchronicznie poprzez system kolejkowy (Event-Bus).
+The system consists of independent microservices communicating with each other synchronously (REST/gRPC) and asynchronously through a message broker (Event-Bus).
 
 ```mermaid
 graph TD
     Client["📱 Client (Web/Mobile)"] --> Gateway["🚪 API Gateway"]
-    
+
     subgraph "Core Microservices"
         Gateway --> US["👤 User Service"]
         Gateway --> LS["📋 Listing Service"]
+        Gateway --> MS["🖼️ Media Service"]
         Gateway --> BS["📅 Booking Service"]
         Gateway --> RS["⭐ Review Service"]
         Gateway --> FS["❤️ Favorites Service"]
     end
-    
+
     subgraph "Auxiliary Services"
         PS["💳 Payment Service"]
         NS["🔔 Notification Service"]
+        AS["📈 Analytics Service"]
     end
 
     BS -- "booking.created" --> EB["📟 Event Bus (RabbitMQ/Kafka)"]
     EB -- "notify" --> NS
     EB -- "process" --> PS
+    EB -- "track" --> AS
 
     subgraph "Data Stores"
         US_DB[(PostgreSQL)]
         LS_DB[(MongoDB)]
+        MS_DB[(S3 / R2)]
         BS_DB[(PostgreSQL)]
         RS_DB[(PostgreSQL)]
         FS_DB[(Redis)]
+        AS_DB[(MongoDB/PostgreSQL)]
     end
 
     US -.-> US_DB
     LS -.-> LS_DB
+    MS -.-> MS_DB
     BS -.-> BS_DB
     RS -.-> RS_DB
     FS -.-> FS_DB
+    AS -.-> AS_DB
 ```
 
 ---
 
-## 📦 Przegląd Mikroserwisów
+## 📦 Microservices Overview
 
-| Serwis | Odpowiedzialność | Technologie (Sugerowane) |
-| :--- | :--- | :--- |
-| **Listing Service** | Zarządzanie ogłoszeniami (CRUD), kategorie, zdjęcia/media. | **Go** + MongoDB |
-| **Media Service**   | Upload i zarządzanie zdjęciami | **Go** + S3 (np. Cloudfare R2)
-| **Booking Service** | Cykl życia rezerwacji, sprawdzanie dostępności (Concurrency). | **Go** + Redis + PostgreSQL |
-
-| **Payment Service** | Procesowanie płatności, integracja ze Stripe/PayPal, fakturowanie. | **Java (Spring Boot)** |
-| **Review Service** | Oceny i opinie do rezerwacji (zarządzanie ratingami ofert). | **Java (Spring Boot)** + PostgreSQL |
-| **Favorites Service** | Lista życzeń / obserwowanych (szybki skrót ulubionych ogłoszeń). | **Java (Spring Boot)** + Redis |
-
-| **Notification Service** | Wysyłka powiadomień (Email, SMS, Push). | **Python** + SendGrid/Twilio |
-| **User Service** | Zarządzanie profilami, Auth (JWT/OAuth2) / Integracja z Google'em, uprawnienia. | **Python** + PostgreSQL |
-| **Analytics Service** | Zbieranie eventów i statystyk | **Python** + Kafka + MongoDB/PostgreSQL
-
+| Service                  | Responsibility                                                           | Technologies (Suggested)                |
+| :----------------------- | :----------------------------------------------------------------------- | :-------------------------------------- |
+| **Listing Service**      | Listing management (CRUD), categories, photos/media.                     | **Go** + MongoDB                        |
+| **Media Service**        | Upload and photo management                                              | **Go** + S3 (e.g. Cloudflare R2)        |
+| **Booking Service**      | Booking lifecycle, availability checking (Concurrency).                  | **Go** + Redis + PostgreSQL             |
+| **Payment Service**      | Payment processing, Stripe/PayPal integration, invoicing.                | **Java (Spring Boot)**                  |
+| **Review Service**       | Ratings and reviews for bookings (listing rating management).            | **Java (Spring Boot)** + PostgreSQL     |
+| **Favorites Service**    | Wishlist / watched (quick shortcut for favorite listings).               | **Java (Spring Boot)** + Redis          |
+| **Notification Service** | Sending notifications (Email, SMS, Push).                                | **Python** + SendGrid/Twilio            |
+| **User Service**         | Profile management, Auth (JWT/OAuth2) / Google Integration, permissions. | **Python** + PostgreSQL                 |
+| **Analytics Service**    | Collecting events and statistics                                         | **Python** + Kafka + MongoDB/PostgreSQL |
 
 ---
 
-## ⚡ Komunikacja Asynchroniczna (Event-Driven)
+## ⚡ Asynchronous Communication (Event-Driven)
 
-RaaS implementuje wzorzec **Saga** do zarządzania transakcjami rozproszonymi. Przykładowy przepływ:
-1.  **Booking Service** (Go) tworzy rezerwację → emituje `booking.placed`.
-2.  **Payment Service** (Java) odbiera event → inicjuje płatność → emituje `payment.succeeded`.
-3.  **Booking Service** aktualizuje status na `confirmed`.
-4.  **Notification Service** (Go) wysyła potwierdzenie do użytkownika.
+RaaS implements the **Saga** pattern to manage distributed transactions. Example flow:
+
+1.  **Booking Service** (Go) creates a booking → emits `booking.placed`.
+2.  **Payment Service** (Java) receives the event → initiates payment → emits `payment.succeeded`.
+3.  **Booking Service** updates status to `confirmed`.
+4.  **Notification Service** (Python) sends confirmation to the user.
 
 ---
 
-## 🛠️ Stack Technologiczny
+## 🛠️ Technology Stack
 
-- **Backend:** Java (Spring Boot), Go (Golang)
-- **Frontend:** Angular.js
-- **Bazy Danych:** PostgreSQL, MongoDB, Redis (Cache/Distributed Lock)
-- **Komunikacja:** Apache Kafka (Event Bus)
+- **Backend:** Java (Spring Boot), Go (Golang), Python
+- **Frontend:** Angular
+- **Databases:** PostgreSQL, MongoDB, Redis (Cache/Distributed Lock), S3
+- **Communication:** Apache Kafka (Event Bus)
 - **DevOps:** Docker, Kubernetes
 
 ---
 
-## 🚀 Szybki Start (Development)
+## 🚀 Quick Start (Development)
 
-Wymagany jest zainstalowany **Docker** oraz **Docker Compose**.
+**Docker** and **Docker Compose** are required.
 
-1.  Sklonuj repozytorium:
+1.  Clone the repository:
+
     ```bash
     git clone https://github.com/YourUser/RaaS.git
     cd RaaS
     ```
 
-2.  Uruchom infrastrukturę i serwisy:
+2.  Start infrastructure and services:
+
     ```bash
     docker-compose up -d
     ```
 
-3.  Sprawdź status serwisów:
+3.  Check services status:
     ```bash
     docker-compose ps
     ```
 
 ---
 
-## 🗺️ Roadmap projektu
+## 🗺️ Project Roadmap
 
-- [ ] Implementacja bazowego `User Service` z Auth
-- [ ] Stworzenie `Listing Service` (Core CRUD)
-- [ ] Wdrożenie `Event Bus` do komunikacji między serwisami
-- [ ] Integracja bramki płatności (Stripe Sandbox)
-- [ ] Implementacja systemu opinii w `Review Service`
-- [ ] Migracja z Docker Compose na Kubernetes (szablony Helm)
-- [ ] Deployment środowiska produkcyjnego na maszynie wirtualnej (VM)
+- [ ] Implement base `User Service` with Auth
+- [ ] Create `Listing Service` (Core CRUD)
+- [ ] Implement `Event Bus` for cross-service communication
+- [ ] Payment gateway integration (Stripe Sandbox)
+- [ ] Implement review system in `Review Service`
+- [ ] Migrate from Docker Compose to Kubernetes (Helm charts)
+- [ ] Production environment deployment on a Virtual Machine (VM)
 
 ---
 
-## 👨‍💻 Dla Dewelopera
+## 👨‍💻 For Developers
 
-Projekt jest idealny do nauki:
-- Architektury mikroserwisowej i transakcji rozproszonych.
-- Systemów opartych na zdarzeniach (Event-Driven Design).
-- Optymalizacji zapytań w bazach danych i wyszukiwarkach (NoSQL vs SQL).
-- Konteneryzacji i orkiestracji.
+The project is ideal for learning:
+
+- Microservices architecture and distributed transactions.
+- Event-Driven Design systems.
+- Database query optimization and search engines (NoSQL vs SQL).
+- Containerization and orchestration.
