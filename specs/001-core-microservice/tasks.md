@@ -20,9 +20,9 @@
 **Purpose**: Project initialization and basic structure
 
 ### Go Developer Track (Listing, Media, Booking)
-- [ ] T001 Initialize Go 1.25+ module and Echo framework base structure for Listing Service in listing/
-- [ ] T002 [P] Initialize Go 1.25+ module and Echo framework base structure for Media Service in media/
-- [ ] T003 [P] Initialize Go 1.25+ module and Echo framework base structure for Booking Service in booking/
+- [x] T001 Initialize Go 1.25+ module and Echo framework base structure for Listing Service in listing/
+- [x] T002 [P] Initialize Go 1.25+ module and Echo framework base structure for Media Service in media/
+- [x] T003 [P] Initialize Go 1.25+ module and Echo framework base structure for Booking Service in booking/
 
 ### Java Developer Track (Payment, Review, Favorites)
 - [ ] T004 [P] Initialize Java 21+ Spring Boot base structure for Payment Service in payment/
@@ -41,10 +41,10 @@
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
 ### Go Developer Track
-- [ ] T010 Implement `/health` endpoint and configure Dockerfile for Listing Service in listing/main.go and listing/Dockerfile
-- [ ] T011 [P] Implement `/health` endpoint and configure Dockerfile for Media Service in media/main.go and media/Dockerfile
-- [ ] T012 [P] Implement `/health` endpoint and configure Dockerfile for Booking Service in booking/main.go and booking/Dockerfile
-- [ ] T013 Configure Kafka client wrappers and database utilities (MongoDB, PostgreSQL, Redis, S3) for Go services
+- [x] T010 Implement `/health` endpoint and configure Dockerfile for Listing Service in listing/main.go and listing/Dockerfile
+- [x] T011 [P] Implement `/health` endpoint and configure Dockerfile for Media Service in media/main.go and media/Dockerfile
+- [x] T012 [P] Implement `/health` endpoint and configure Dockerfile for Booking Service in booking/main.go and booking/Dockerfile
+- [x] T013 Configure Kafka client wrappers and database utilities (MongoDB, PostgreSQL, Redis, S3) for Go services
 
 ### Java Developer Track
 - [ ] T014 [P] Implement `/health` endpoint and configure Dockerfile for Payment Service in payment/src/ and payment/Dockerfile
@@ -68,7 +68,7 @@
 **Independent Test**: Can be fully tested by creating a new entity via the REST API and verifying its persistence in the database and corresponding event publication.
 
 ### Go Developer Track
-- [ ] T022 [P] [US1] Create Listing model (MongoDB) and POST/GET API endpoints in listing/main.go
+- [x] T022 [P] [US1] Create Listing model (MongoDB) and POST/GET API endpoints in listing/main.go
 - [ ] T023 [P] [US1] Create Media model (S3/R2) and POST/GET API endpoints for uploads in media/main.go
 - [ ] T024 [P] [US1] Create Booking model (Postgres) and POST/GET API endpoints with Redis Redlock distributed locks in booking/main.go
 - [ ] T025 [P] [US1] Emit `booking.created` event from Booking Service on booking placement in booking/main.go
