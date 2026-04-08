@@ -10,7 +10,7 @@ Implement the core microservices for RaaS (Listing, Media, Booking, Payment, Rev
 ## Technical Context
 
 **Language/Version**: Go 1.25+ (Listing, Media, Booking), Java 21+ (Payment, Review, Favorites), Python 3.11+ (Notification, User, Analytics)
-**Primary Dependencies**: Go web framework (Gin/Mux), Spring Boot, FastAPI/Flask, Kafka Client
+**Primary Dependencies**: Go web framework (Echo), Spring Boot, FastAPI, Kafka Client, Stripe Java SDK
 **Storage**: PostgreSQL, MongoDB, Redis, S3 (R2)
 **Testing**: Go testing, JUnit, PyTest
 **Target Platform**: Kubernetes (Docker containers)
@@ -21,7 +21,7 @@ Implement the core microservices for RaaS (Listing, Media, Booking, Payment, Rev
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - [x] Must be scalable, fault-tolerant, and loosely coupled.
 - [x] Each microservice owns its domain and data (no shared databases).
@@ -46,7 +46,7 @@ specs/001-core-microservice/
 
 ### Source Code (repository root)
 
-`	ext
+` ext
 user/
 ├── Dockerfile
 ├── deployment.yaml
@@ -109,4 +109,4 @@ analytics/
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
+| --------- | ---------- | ------------------------------------ |

@@ -53,6 +53,7 @@ The microservice must listen to external system events and update its internal s
 - **FR-005**: System MUST expose a `/health` endpoint for Kubernetes readiness and liveness probes.
 - **FR-006**: System MUST provide structural artifacts including a Dockerfile and Kubernetes deployment manifests.
 - **FR-007**: System MUST identify the specific domain entity and service boundaries for all core architectural microservices (Listing, Media, Booking, Payment, Review, Favorites, Notification, User, Analytics), implementing each as a discrete service.
+- **FR-008**: System MUST utilize Stripe as the exclusive payment processor for the Payment Service, ensuring secure API and webhook integration for transaction validations.
 
 ### Key Entities
 

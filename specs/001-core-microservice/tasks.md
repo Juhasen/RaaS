@@ -20,9 +20,9 @@
 **Purpose**: Project initialization and basic structure
 
 ### Go Developer Track (Listing, Media, Booking)
-- [ ] T001 Initialize Go 1.25+ module and base structure for Listing Service in listing/
-- [ ] T002 [P] Initialize Go 1.25+ module and base structure for Media Service in media/
-- [ ] T003 [P] Initialize Go 1.25+ module and base structure for Booking Service in booking/
+- [ ] T001 Initialize Go 1.25+ module and Echo framework base structure for Listing Service in listing/
+- [ ] T002 [P] Initialize Go 1.25+ module and Echo framework base structure for Media Service in media/
+- [ ] T003 [P] Initialize Go 1.25+ module and Echo framework base structure for Booking Service in booking/
 
 ### Java Developer Track (Payment, Review, Favorites)
 - [ ] T004 [P] Initialize Java 21+ Spring Boot base structure for Payment Service in payment/
@@ -30,9 +30,9 @@
 - [ ] T006 [P] Initialize Java 21+ Spring Boot base structure for Favorites Service in favorites/
 
 ### Python Developer Track (Notification, User, Analytics)
-- [ ] T007 [P] Initialize Python 3.11+ base structure (FastAPI/Flask) for Notification Service in notification/
-- [ ] T008 [P] Initialize Python 3.11+ base structure (FastAPI/Flask) for User Service in user/
-- [ ] T009 [P] Initialize Python 3.11+ base structure (FastAPI/Flask) for Analytics Service in analytics/
+- [ ] T007 [P] Initialize Python 3.11+ base structure (FastAPI) for Notification Service in notification/
+- [ ] T008 [P] Initialize Python 3.11+ base structure (FastAPI) for User Service in user/
+- [ ] T009 [P] Initialize Python 3.11+ base structure (FastAPI) for Analytics Service in analytics/
 
 ---
 
@@ -62,7 +62,7 @@
 
 ---
 
-## Phase 3: User Story 1 - Create and Manage Domain Entity (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Create and Manage Domain Entity (Priority: P1) đźŽŻ MVP
 
 **Goal**: Users must be able to create, update, and retrieve the core domain entity associated with this microservice securely.
 **Independent Test**: Can be fully tested by creating a new entity via the REST API and verifying its persistence in the database and corresponding event publication.
@@ -99,12 +99,13 @@
 
 ### Java Developer Track
 - [ ] T035 [US2] Implement idempotent Kafka consumer (Outbox Pattern or event_id tracking) for `booking.created` in Payment Service in payment/src/
-- [ ] T036 [US2] Implement Event Dispatcher in Payment Service to emit `payment.succeeded` / `payment.failed` after processing in payment/src/
+- [ ] T036 [US2] Integrate Stripe Java SDK to process payment charges (creating PaymentIntents/handling webhooks) in payment/src/
+- [ ] T037 [US2] Implement Event Dispatcher in Payment Service to emit `payment.succeeded` / `payment.failed` after processing with Stripe in payment/src/
 
 ### Python Developer Track
-- [ ] T037 [P] [US2] Implement Kafka consumer in Notification Service to listen for formatting and sending mock notifications on `user.created`, `payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected` in notification/main.py
-- [ ] T038 [P] [US2] Implement idempotent Kafka consumer for `booking.created` in Analytics Service in analytics/main.py
-- [ ] T039 [P] [US2] Implement Kafka consumers in Analytics Service for tracking events (`payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected`, `media.uploaded`) in analytics/main.py
+- [ ] T038 [P] [US2] Implement Kafka consumer in Notification Service to listen for formatting and sending mock notifications on `user.created`, `payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected` in notification/main.py
+- [ ] T039 [P] [US2] Implement idempotent Kafka consumer for `booking.created` in Analytics Service in analytics/main.py
+- [ ] T040 [P] [US2] Implement Kafka consumers in Analytics Service for tracking events (`payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected`, `media.uploaded`) in analytics/main.py
 
 **Checkpoint**: Saga event-driven lifecycle complete
 
@@ -115,16 +116,16 @@
 **Purpose**: Improvements that affect multiple user stories
 
 ### Go Developer Track
-- [ ] T040 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Go services
+- [ ] T041 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Go services
 
 ### Java Developer Track
-- [ ] T041 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Java services
+- [ ] T042 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Java services
 
 ### Python Developer Track
-- [ ] T042 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Python services
+- [ ] T043 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Python services
 
 ### Cross-Cutting (Any Developer)
-- [ ] T043 Standardize pagination, filtering, error handling formats, and OpenTelemetry across all 9 endpoints
+- [ ] T044 Standardize pagination, filtering, error handling formats, and OpenTelemetry across all 9 endpoints
 
 ---
 
