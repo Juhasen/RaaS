@@ -21,5 +21,5 @@
 
 **Topic**: Saga Pattern Orchestration vs. Choreography
 **Decision**: Choreography (event-driven).
-**Rationale**: Services should remain loosely coupled without a centralized orchestrator, relying on Kafka events (ooking.placed, payment.succeeded).
+**Rationale**: Services should remain loosely coupled without a centralized orchestrator, relying on Kafka events (booking.placed, payment.succeeded).
 **Alternatives considered**: Centralized Orchestrator (adds a potential single point of failure and tight coupling).

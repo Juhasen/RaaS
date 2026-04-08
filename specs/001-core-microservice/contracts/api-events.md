@@ -7,7 +7,7 @@
 - **Consumers**: Notification Service, Analytics Service
 - **Payload**: {"user_id": UUID, "email": String, "created_at": Timestamp}
 
-### Topic: ooking.created (Saga Started)
+### Topic: booking.created (Saga Started)
 - **Producer**: Booking Service
 - **Consumers**: Payment Service, Analytics Service
 - **Payload**: {"booking_id": UUID, "guest_id": UUID, "amount": Decimal, "status": "PENDING"}
@@ -22,12 +22,12 @@
 - **Consumers**: Booking Service, Notification Service, Analytics Service
 - **Payload**: {"payment_id": UUID, "booking_id": UUID, "status": "FAILED", "reason": String}
 
-### Topic: ooking.confirmed (Saga Completed)
+### Topic: booking.confirmed (Saga Completed)
 - **Producer**: Booking Service
 - **Consumers**: Listing Service, Notification Service, Analytics Service
 - **Payload**: {"booking_id": UUID, "status": "CONFIRMED"}
 
-### Topic: ooking.rejected (Saga Compensated)
+### Topic: booking.rejected (Saga Compensated)
 - **Producer**: Booking Service
 - **Consumers**: Notification Service, Analytics Service
 - **Payload**: {"booking_id": UUID, "status": "REJECTED"}

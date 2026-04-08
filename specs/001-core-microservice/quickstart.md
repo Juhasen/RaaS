@@ -9,7 +9,7 @@
 ## Starting the Infrastructure
 Ensure Kafka, Postgres, MongoDB, Redis, and MinIO/Localstack (S3) are running locally via Docker Compose.
 
-`ash
+`ash
 docker-compose up -d
 `
 
