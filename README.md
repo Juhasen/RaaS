@@ -55,13 +55,18 @@ graph TD
 
 | Serwis | Odpowiedzialność | Technologie (Sugerowane) |
 | :--- | :--- | :--- |
-| **User Service** | Zarządzanie profilami, Auth (JWT/OAuth2), uprawnienia. | **Java (Spring Boot)** + PostgreSQL |
 | **Listing Service** | Zarządzanie ogłoszeniami (CRUD), kategorie, zdjęcia/media. | **Go** + MongoDB |
+| **Media Service**   | Upload i zarządzanie zdjęciami | **Go** + S3 (np. Cloudfare R2)
 | **Booking Service** | Cykl życia rezerwacji, sprawdzanie dostępności (Concurrency). | **Go** + Redis + PostgreSQL |
+
 | **Payment Service** | Procesowanie płatności, integracja ze Stripe/PayPal, fakturowanie. | **Java (Spring Boot)** |
-| **Notification Service** | Wysyłka powiadomień (Email, SMS, Push). | **Go** + SendGrid/Twilio |
 | **Review Service** | Oceny i opinie do rezerwacji (zarządzanie ratingami ofert). | **Java (Spring Boot)** + PostgreSQL |
 | **Favorites Service** | Lista życzeń / obserwowanych (szybki skrót ulubionych ogłoszeń). | **Java (Spring Boot)** + Redis |
+
+| **Notification Service** | Wysyłka powiadomień (Email, SMS, Push). | **Python** + SendGrid/Twilio |
+| **User Service** | Zarządzanie profilami, Auth (JWT/OAuth2) / Integracja z Google'em, uprawnienia. | **Python** + PostgreSQL |
+| **Analytics Service** | Zbieranie eventów i statystyk | **Python** + Kafka + MongoDB/PostgreSQL
+
 
 ---
 
