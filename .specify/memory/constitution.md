@@ -86,7 +86,7 @@ Monitor request latency, error rates, and event lag (Kafka). Each service MUST e
 ## 10. DevOps & Deployment
 
 All services MUST be containerized (Docker).
-Use Docker Compose for local development and Kubernetes for production. CI/CD pipelines are required for each service.
+Use local Kubernetes (e.g., Docker Desktop with Kubernetes) for local development to mirror production, and Kubernetes for production. CI/CD pipelines are required for each service.
 
 ## 11. Code Standards
 
