@@ -10,6 +10,7 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/segmentio/kafka-go"
 )
 
 type Booking struct {
@@ -94,6 +95,23 @@ func createBooking(c echo.Context) error {
 		}
 	} else {
 		c.Logger().Warn("Postgres not initialized, skipping insert")
+	}
+
+	if KafkaWriter != nil {
+		eventMsg := fmt.Sprintf(`{"event":"booking.created","booking_id":"%s","listing_id":"%s","guest_id":"%s","total_price":%f}`, req.ID, req.ListingID, req.GuestID, req.TotalPrice)
+		err := KafkaWriter.WriteMessages(context.Background(),
+			kafka.Message{
+				Key:   []byte(req.ID),
+				Value: []byte(eventMsg),
+			},
+		)
+		if err != nil {
+			c.Logger().Errorf("Failed to emit booking.created event: %v", err)
+		} else {
+			c.Logger().Info("Emitted booking.created event")
+		}
+	} else {
+		c.Logger().Warn("KafkaWriter not initialized, skipping event emission")
 	}
 
 	return c.JSON(http.StatusCreated, req)

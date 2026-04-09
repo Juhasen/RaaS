@@ -90,6 +90,24 @@ func uploadMedia(c echo.Context) error {
 		CreatedAt: time.Now(),
 	}
 
+	if KafkaWriter != nil {
+		eventMsg := fmt.Sprintf(`{"event":"media.uploaded","media_id":"%s","listing_id":"%s","url":"%s","type":"%s"}`, media.ID, media.ListingID, media.URL, media.Type)
+		err := KafkaWriter.WriteMessages(context.Background(),
+			kafka.Message{
+				Key:   []byte(media.ID),
+				Value: []byte(eventMsg),
+			},
+		)
+		if err != nil {
+			c.Logger().Errorf("Failed to emit media.uploaded event: %v", err)
+			// Continue since media was uploaded successfully
+		} else {
+			c.Logger().Info("Emitted media.uploaded event")
+		}
+	} else {
+		c.Logger().Warn("KafkaWriter not initialized, skipping event emission")
+	}
+
 	return c.JSON(http.StatusCreated, media)
 }
 

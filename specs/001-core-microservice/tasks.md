@@ -79,10 +79,10 @@
 
 ### Go Developer Track
 - [x] T022 [P] [US1] Create Listing model (MongoDB) and POST/GET API endpoints in listing/main.go
-- [ ] T023 [P] [US1] Create Media model (S3/R2) and POST/GET API endpoints for uploads in media/main.go
-- [ ] T024 [P] [US1] Create Booking model (Postgres) and POST/GET API endpoints with Redis Redlock distributed locks in booking/main.go
-- [ ] T025 [P] [US1] Emit `booking.created` event from Booking Service on booking placement in booking/main.go
-- [ ] T026 [P] [US1] Emit `media.uploaded` event from Media Service on successful upload in media/main.go
+- [x] T023 [P] [US1] Create Media model (S3/R2) and POST/GET API endpoints for uploads in media/main.go
+- [x] T024 [P] [US1] Create Booking model (Postgres) and POST/GET API endpoints with Redis Redlock distributed locks in booking/main.go
+- [x] T025 [P] [US1] Emit `booking.created` event from Booking Service on booking placement in booking/main.go
+- [x] T026 [P] [US1] Emit `media.uploaded` event from Media Service on successful upload in media/main.go
 
 ### Java Developer Track
 
