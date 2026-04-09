@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"encoding/json"
+	"log"
+
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/google/uuid"
@@ -36,6 +39,8 @@ func main() {
 	e.POST("/bookings", createBooking)
 	e.GET("/bookings/:id", getBooking)
 
+	go startKafkaConsumers()
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
@@ -45,6 +50,54 @@ func getRedsync() *redsync.Redsync {
 		rs = redsync.New(pool)
 	}
 	return rs
+}
+
+func startKafkaConsumers() {
+	log.Println("Starting Booking Kafka consumers (mocked without actual brokers for MVP)")
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		GroupID: "booking-service-group",
+		Topic:   "system.events",
+		MaxWait: 1 * time.Second,
+	})
+	defer r.Close()
+
+	for {
+		m, err := r.ReadMessage(context.Background())
+		if err != nil {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		var event struct {
+			Event     string `json:"event"`
+			BookingID string `json:"booking_id"`
+			ListingID string `json:"listing_id"`
+		}
+		if err := json.Unmarshal(m.Value, &event); err == nil && DB != nil {
+			if event.Event == "payment.succeeded" {
+				log.Printf("Payment succeeded for booking %s, confirming...", event.BookingID)
+				DB.Exec(context.Background(), "UPDATE bookings SET status='CONFIRMED' WHERE id=$1", event.BookingID)
+				emitSagaEvent("booking.confirmed", event.BookingID, event.ListingID)
+			} else if event.Event == "payment.failed" {
+				log.Printf("Payment failed for booking %s, rejecting...", event.BookingID)
+				DB.Exec(context.Background(), "UPDATE bookings SET status='REJECTED' WHERE id=$1", event.BookingID)
+				emitSagaEvent("booking.rejected", event.BookingID, event.ListingID)
+			}
+		}
+	}
+}
+
+func emitSagaEvent(eventName, bookingID, listingID string) {
+	if KafkaWriter != nil {
+		eventMsg := fmt.Sprintf(`{"event":"%s","booking_id":"%s","listing_id":"%s"}`, eventName, bookingID, listingID)
+		KafkaWriter.WriteMessages(context.Background(),
+			kafka.Message{
+				Key:   []byte(bookingID),
+				Value: []byte(eventMsg),
+			},
+		)
+	}
 }
 
 func createBooking(c echo.Context) error {

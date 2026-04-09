@@ -9,6 +9,7 @@
 **Organization**: Tasks are grouped by user story, and further subdivided by language/developer track to enable independent branching and parallel implementation across the microservices.
 
 **Code Style Guidelines**: All implementations must strictly follow the language-specific markdown guidelines located in the `/guidelines/` directory:
+
 - Go developers must follow `guidelines/GO.md`
 - Java developers must follow `guidelines/JAVA.md`
 - Python developers must use standard Python best practices (or `guidelines/PYTHON.md` if available)
@@ -26,6 +27,7 @@
 **Purpose**: Project initialization and basic structure
 
 ### Go Developer Track (Listing, Media, Booking)
+
 - [x] T001 Initialize Go 1.25+ module and Echo framework base structure for Listing Service in listing/
 - [x] T002 [P] Initialize Go 1.25+ module and Echo framework base structure for Media Service in media/
 - [x] T003 [P] Initialize Go 1.25+ module and Echo framework base structure for Booking Service in booking/
@@ -49,6 +51,7 @@
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
 ### Go Developer Track
+
 - [x] T010 Implement `/health` endpoint and configure Dockerfile for Listing Service in listing/main.go and listing/Dockerfile
 - [x] T011 [P] Implement `/health` endpoint and configure Dockerfile for Media Service in media/main.go and media/Dockerfile
 - [x] T012 [P] Implement `/health` endpoint and configure Dockerfile for Booking Service in booking/main.go and booking/Dockerfile
@@ -78,6 +81,7 @@
 **Independent Test**: Can be fully tested by creating a new entity via the REST API and verifying its persistence in the database and corresponding event publication.
 
 ### Go Developer Track
+
 - [x] T022 [P] [US1] Create Listing model (MongoDB) and POST/GET API endpoints in listing/main.go
 - [x] T023 [P] [US1] Create Media model (S3/R2) and POST/GET API endpoints for uploads in media/main.go
 - [x] T024 [P] [US1] Create Booking model (Postgres) and POST/GET API endpoints with Redis Redlock distributed locks in booking/main.go
@@ -106,9 +110,9 @@
 
 ### Go Developer Track
 
-- [ ] T032 [P] [US2] Implement idempotent Kafka consumer for `payment.succeeded` & `payment.failed` in Booking Service (Saga complete/compensate) in booking/main.go
-- [ ] T033 [US2] Emit `booking.confirmed` / `booking.rejected` from Booking Service upon handling payment results in booking/main.go
-- [ ] T034 [P] [US2] Implement Kafka consumer in Listing Service to listen to `booking.confirmed` for availability logic updates, and `media.uploaded` for asset attachments in listing/main.go
+- [x] T032 [P] [US2] Implement idempotent Kafka consumer for `payment.succeeded` & `payment.failed` in Booking Service (Saga complete/compensate) in booking/main.go
+- [x] T033 [US2] Emit `booking.confirmed` / `booking.rejected` from Booking Service upon handling payment results in booking/main.go
+- [x] T034 [P] [US2] Implement Kafka consumer in Listing Service to listen to `booking.confirmed` for availability logic updates, and `media.uploaded` for asset attachments in listing/main.go
 
 ### Java Developer Track
 
@@ -132,7 +136,7 @@
 
 ### Go Developer Track
 
-- [ ] T041 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Go services
+- [x] T041 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Go services
 
 ### Java Developer Track
 
