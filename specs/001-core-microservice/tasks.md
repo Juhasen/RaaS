@@ -8,6 +8,12 @@
 
 **Organization**: Tasks are grouped by user story, and further subdivided by language/developer track to enable independent branching and parallel implementation across the microservices.
 
+**Code Style Guidelines**: All implementations must strictly follow the language-specific markdown guidelines located in the `/guidelines/` directory:
+- Go developers must follow `guidelines/GO.md`
+- Java developers must follow `guidelines/JAVA.md`
+- Python developers must use standard Python best practices (or `guidelines/PYTHON.md` if available)
+- UI/Frontend developers must follow `guidelines/ANGULAR.md` and `guidelines/TYPESCRIPT.md`
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
