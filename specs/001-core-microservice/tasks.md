@@ -34,9 +34,9 @@
 
 ### Java Developer Track (Payment, Review, Favorites)
 
-- [ ] T004 [P] Initialize Java 21+ Spring Boot base structure for Payment Service in payment/
-- [ ] T005 [P] Initialize Java 21+ Spring Boot base structure for Review Service in review/
-- [ ] T006 [P] Initialize Java 21+ Spring Boot base structure for Favorites Service in favorites/
+- [x] T004 [P] Initialize Java 21+ Spring Boot base structure for Payment Service in payment/
+- [x] T005 [P] Initialize Java 21+ Spring Boot base structure for Review Service in review/
+- [x] T006 [P] Initialize Java 21+ Spring Boot base structure for Favorites Service in favorites/
 
 ### Python Developer Track (Notification, User, Analytics)
 
@@ -59,10 +59,10 @@
 
 ### Java Developer Track
 
-- [ ] T014 [P] Implement `/health` endpoint and configure Dockerfile for Payment Service in payment/src/ and payment/Dockerfile
-- [ ] T015 [P] Implement `/health` endpoint and configure Dockerfile for Review Service in review/src/ and review/Dockerfile
-- [ ] T016 [P] Implement `/health` endpoint and configure Dockerfile for Favorites Service in favorites/src/ and favorites/Dockerfile
-- [ ] T017 Configure Kafka client wrappers and database connection utilities (PostgreSQL, Redis) for Java services
+- [x] T014 [P] Implement `/health` endpoint and configure Dockerfile for Payment Service in payment/src/ and payment/Dockerfile
+- [x] T015 [P] Implement `/health` endpoint and configure Dockerfile for Review Service in review/src/ and review/Dockerfile
+- [x] T016 [P] Implement `/health` endpoint and configure Dockerfile for Favorites Service in favorites/src/ and favorites/Dockerfile
+- [x] T017 Configure Kafka client wrappers and database connection utilities (PostgreSQL, Redis) for Java services
 
 ### Python Developer Track
 
@@ -90,8 +90,8 @@
 
 ### Java Developer Track
 
-- [ ] T027 [P] [US1] Create Review model (Postgres) and POST/GET API endpoints in review/src/
-- [ ] T028 [P] [US1] Create Favorites UserFavorites logic (Redis hash) and POST/GET API endpoints in favorites/src/
+- [x] T027 [P] [US1] Create Review model (Postgres) and POST/GET API endpoints in review/src/
+- [x] T028 [P] [US1] Create Favorites UserFavorites logic (Redis hash) and POST/GET API endpoints in favorites/src/
 
 ### Python Developer Track
 
@@ -116,9 +116,9 @@
 
 ### Java Developer Track
 
-- [ ] T035 [US2] Implement idempotent Kafka consumer (Outbox Pattern or event_id tracking) for `booking.created` in Payment Service in payment/src/
-- [ ] T036 [US2] Integrate Stripe Java SDK to process payment charges (creating PaymentIntents/handling webhooks) in payment/src/
-- [ ] T037 [US2] Implement Event Dispatcher in Payment Service to emit `payment.succeeded` / `payment.failed` after processing with Stripe in payment/src/
+- [x] T035 [US2] Implement idempotent Kafka consumer (Outbox Pattern or event_id tracking) for `booking.created` in Payment Service in payment/src/
+- [x] T036 [US2] Integrate Stripe Java SDK to process payment charges (creating PaymentIntents/handling webhooks) in payment/src/
+- [x] T037 [US2] Implement Event Dispatcher in Payment Service to emit `payment.succeeded` / `payment.failed` after processing with Stripe in payment/src/
 
 ### Python Developer Track
 
@@ -140,7 +140,7 @@
 
 ### Java Developer Track
 
-- [ ] T042 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Java services
+- [x] T042 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Java services
 
 ### Python Developer Track
 

@@ -18,3 +18,28 @@ Thumbs.db
 
 # Docker
 .dockerignore
+
+# Java
+target/
+*.class
+*.jar
+.gradle/
+build/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+
+# Node.js
+node_modules/
+coverage/
+*.log
+.env*
+
+# Temp
+*.tmp
+*.swp
