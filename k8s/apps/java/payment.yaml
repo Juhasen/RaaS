@@ -18,7 +18,7 @@ spec:
       containers:
         - name: payment-service
           image: raas/payment-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
@@ -28,9 +28,9 @@ spec:
                   name: raas-config
                   key: PAYMENT_DB_URL
             - name: PAYMENT_DB_USER
-              value: "payment"
+              value: "raas_user"
             - name: PAYMENT_DB_PASSWORD
-              value: "payment"
+              value: "raas_password"
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 configMapKeyRef:

@@ -53,7 +53,7 @@ def handle_event(event: dict):
             id=str(uuid.uuid4()),
             event_type=event_type,
             user_id=user_id,
-            metadata=event
+            event_metadata=event
         )
         
         session.add(analytics_event)
@@ -154,7 +154,7 @@ async def ingest_event(
             id=str(uuid.uuid4()),
             event_type=request.event_type,
             user_id=request.user_id,
-            metadata=request.metadata
+            event_metadata=request.metadata
         )
         
         db.add(event)
