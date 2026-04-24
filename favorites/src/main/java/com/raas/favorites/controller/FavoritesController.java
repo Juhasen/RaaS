@@ -1,4 +1,4 @@
-package main.java.com.raas.favorites.controller;
+package com.raas.favorites.controller;
 
 import com.raas.favorites.service.FavoritesService;
 import com.raas.favorites.web.FavoriteRequest;

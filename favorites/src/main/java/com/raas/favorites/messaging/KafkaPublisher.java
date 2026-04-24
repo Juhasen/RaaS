@@ -1,4 +1,4 @@
-package main.java.com.raas.favorites.messaging;
+package com.raas.favorites.messaging;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;

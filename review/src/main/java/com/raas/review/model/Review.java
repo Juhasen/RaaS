@@ -1,4 +1,4 @@
-package main.java.com.raas.review.model;
+package com.raas.review.model;
 
 import java.time.Instant;
 import java.util.UUID;

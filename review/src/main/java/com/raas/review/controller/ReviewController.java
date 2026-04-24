@@ -1,4 +1,4 @@
-package main.java.com.raas.review.controller;
+package com.raas.review.controller;
 
 import com.raas.review.model.Review;
 import com.raas.review.repository.ReviewRepository;

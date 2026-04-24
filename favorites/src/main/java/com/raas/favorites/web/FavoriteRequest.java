@@ -1,4 +1,4 @@
-package main.java.com.raas.favorites.web;
+package com.raas.favorites.web;
 
 import jakarta.validation.constraints.NotBlank;
 

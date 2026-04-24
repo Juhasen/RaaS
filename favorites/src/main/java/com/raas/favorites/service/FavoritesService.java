@@ -1,4 +1,4 @@
-package main.java.com.raas.favorites.service;
+package com.raas.favorites.service;
 
 import java.util.ArrayList;
 import java.util.List;

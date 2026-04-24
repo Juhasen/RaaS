@@ -1,4 +1,4 @@
-package main.java.com.raas.review.config;
+package com.raas.review.config;
 
 import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
