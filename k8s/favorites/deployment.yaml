@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: favorites-deployment
+  labels:
+    app: favorites-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: favorites-service
+  template:
+    metadata:
+      labels:
+        app: favorites-service
+    spec:
+      containers:
+        - name: favorites-service
+          image: raas/favorites-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
