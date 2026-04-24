@@ -120,18 +120,6 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
 
 ---
 
-## 🗺️ Project Roadmap
-
-- [ ] Implement base `User Service` with Auth
-- [ ] Create `Listing Service` (Core CRUD)
-- [ ] Implement `Event Bus` for cross-service communication
-- [ ] Payment gateway integration (Stripe Sandbox)
-- [ ] Implement review system in `Review Service`
-- [ ] Migrate from Docker Compose to Kubernetes (Helm charts)
-- [ ] Production environment deployment on a Virtual Machine (VM)
-
----
-
 ## 👨‍💻 For Developers
 
 The project is ideal for learning:
