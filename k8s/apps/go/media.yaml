@@ -18,6 +18,7 @@ spec:
       containers:
         - name: media-service
           image: raas/media-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:

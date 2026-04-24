@@ -18,6 +18,7 @@ spec:
       containers:
         - name: review-service
           image: raas/review-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
