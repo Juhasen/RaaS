@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: media-deployment
+  namespace: raas
   labels:
     app: media-service
 spec:
@@ -25,4 +26,21 @@ spec:
             - name: S3_BUCKET
               value: "raas-media-bucket"
             - name: KAFKA_BROKERS
-              value: "kafka:9092"
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: KAFKA_BROKER
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-service
+  namespace: raas
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30002
+  selector:
+    app: media-service

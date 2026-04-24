@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: favorites-deployment
+  namespace: raas
+  labels:
+    app: favorites-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: favorites-service
+  template:
+    metadata:
+      labels:
+        app: favorites-service
+    spec:
+      containers:
+        - name: favorites-service
+          image: raas/favorites-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: FAVORITES_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: FAVORITES_DB_URL
+            - name: FAVORITES_DB_USER
+              value: "favorites"
+            - name: FAVORITES_DB_PASSWORD
+              value: "favorites"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: KAFKA_BROKER
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: favorites-service
+  namespace: raas
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30013
+  selector:
+    app: favorites-service

@@ -13,6 +13,14 @@ This guide documents how developers can spin up the RaaS local Kubernetes infras
    kubectl get nodes
    ```
 
+## Memory Consumption Limits
+
+Running the full microservices stack locally requires the following system configurations to ensure cluster stability:
+- **Full Stack Emulation**: 8GB RAM minimum, 16GB RAM recommended.
+- **Single Domain Track**: 4GB RAM minimum.
+- **CPU**: 4 virtual CPUs recommended.
+- **Note**: The microservices have predefined resource requests (`memory: "128Mi"`) and limits (`memory: "512Mi"`). If nodes lack capacity, you may observe pods in `Pending` or `OOMKilled` states.
+
 ## Deploying the Full Stack
 
 If your machine has sufficient resources (minimum 8-16GB allocated to K8s) and you wish to run the entire backend locally, you can apply all components.

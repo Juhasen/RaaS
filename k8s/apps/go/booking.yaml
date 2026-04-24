@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-deployment
+  namespace: raas
+  labels:
+    app: booking-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-service
+  template:
+    metadata:
+      labels:
+        app: booking-service
+    spec:
+      containers:
+        - name: booking-service
+          image: raas/booking-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: POSTGRES_URL
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: REDIS_URL
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: KAFKA_BROKER
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service
+  namespace: raas
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30003
+  selector:
+    app: booking-service

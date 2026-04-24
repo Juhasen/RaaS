@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: review-deployment
+  namespace: raas
   labels:
     app: review-service
 spec:
@@ -21,10 +22,30 @@ spec:
             - containerPort: 8080
           env:
             - name: REVIEW_DB_URL
-              value: "jdbc:postgresql://postgres:5432/review"
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: REVIEW_DB_URL
             - name: REVIEW_DB_USER
               value: "review"
             - name: REVIEW_DB_PASSWORD
               value: "review"
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:9092"
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: KAFKA_BROKER
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-service
+  namespace: raas
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30012
+  selector:
+    app: review-service
