@@ -12,6 +12,7 @@ Implement the core microservices for RaaS (Listing, Media, Booking, Payment, Rev
 **Language/Version**: Go 1.25+ (Listing, Media, Booking), Java 21+ (Payment, Review, Favorites), Python 3.11+ (Notification, User, Analytics)
 **Primary Dependencies**: Go web framework (Echo), Spring Boot, FastAPI, Kafka Client, Stripe Java SDK
 **Storage**: PostgreSQL, MongoDB, Redis, S3 (R2)
+**Code Style Guidelines**: Must adhere to `/guidelines/` documents (`GO.md`, `JAVA.md`, `ANGULAR.md`, etc.) based on the stack.
 **Testing**: Go testing, JUnit, PyTest
 **Target Platform**: Kubernetes (Docker containers)
 **Project Type**: Microservices architecture

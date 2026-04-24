@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: listing-deployment
+  labels:
+    app: listing-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: listing-service
+  template:
+    metadata:
+      labels:
+        app: listing-service
+    spec:
+      containers:
+        - name: listing-service
+          image: raas/listing-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/raas"
+            - name: KAFKA_BROKERS
+              value: "kafka:9092"

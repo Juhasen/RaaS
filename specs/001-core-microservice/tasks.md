@@ -8,6 +8,13 @@
 
 **Organization**: Tasks are grouped by user story, and further subdivided by language/developer track to enable independent branching and parallel implementation across the microservices.
 
+**Code Style Guidelines**: All implementations must strictly follow the language-specific markdown guidelines located in the `/guidelines/` directory:
+
+- Go developers must follow `guidelines/GO.md`
+- Java developers must follow `guidelines/JAVA.md`
+- Python developers must use standard Python best practices (or `guidelines/PYTHON.md` if available)
+- UI/Frontend developers must follow `guidelines/ANGULAR.md` and `guidelines/TYPESCRIPT.md`
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -21,15 +28,15 @@
 
 ### Go Developer Track (Listing, Media, Booking)
 
-- [ ] T001 Initialize Go 1.25+ module and Echo framework base structure for Listing Service in listing/
-- [ ] T002 [P] Initialize Go 1.25+ module and Echo framework base structure for Media Service in media/
-- [ ] T003 [P] Initialize Go 1.25+ module and Echo framework base structure for Booking Service in booking/
+- [x] T001 Initialize Go 1.25+ module and Echo framework base structure for Listing Service in listing/
+- [x] T002 [P] Initialize Go 1.25+ module and Echo framework base structure for Media Service in media/
+- [x] T003 [P] Initialize Go 1.25+ module and Echo framework base structure for Booking Service in booking/
 
 ### Java Developer Track (Payment, Review, Favorites)
 
-- [ ] T004 [P] Initialize Java 21+ Spring Boot base structure for Payment Service in payment/
-- [ ] T005 [P] Initialize Java 21+ Spring Boot base structure for Review Service in review/
-- [ ] T006 [P] Initialize Java 21+ Spring Boot base structure for Favorites Service in favorites/
+- [x] T004 [P] Initialize Java 21+ Spring Boot base structure for Payment Service in payment/
+- [x] T005 [P] Initialize Java 21+ Spring Boot base structure for Review Service in review/
+- [x] T006 [P] Initialize Java 21+ Spring Boot base structure for Favorites Service in favorites/
 
 ### Python Developer Track (Notification, User, Analytics)
 
@@ -45,17 +52,17 @@
 
 ### Go Developer Track
 
-- [ ] T010 Implement `/health` endpoint and configure Dockerfile for Listing Service in listing/main.go and listing/Dockerfile
-- [ ] T011 [P] Implement `/health` endpoint and configure Dockerfile for Media Service in media/main.go and media/Dockerfile
-- [ ] T012 [P] Implement `/health` endpoint and configure Dockerfile for Booking Service in booking/main.go and booking/Dockerfile
-- [ ] T013 Configure Kafka client wrappers and database utilities (MongoDB, PostgreSQL, Redis, S3) for Go services
+- [x] T010 Implement `/health` endpoint and configure Dockerfile for Listing Service in listing/main.go and listing/Dockerfile
+- [x] T011 [P] Implement `/health` endpoint and configure Dockerfile for Media Service in media/main.go and media/Dockerfile
+- [x] T012 [P] Implement `/health` endpoint and configure Dockerfile for Booking Service in booking/main.go and booking/Dockerfile
+- [x] T013 Configure Kafka client wrappers and database utilities (MongoDB, PostgreSQL, Redis, S3) for Go services
 
 ### Java Developer Track
 
-- [ ] T014 [P] Implement `/health` endpoint and configure Dockerfile for Payment Service in payment/src/ and payment/Dockerfile
-- [ ] T015 [P] Implement `/health` endpoint and configure Dockerfile for Review Service in review/src/ and review/Dockerfile
-- [ ] T016 [P] Implement `/health` endpoint and configure Dockerfile for Favorites Service in favorites/src/ and favorites/Dockerfile
-- [ ] T017 Configure Kafka client wrappers and database connection utilities (PostgreSQL, Redis) for Java services
+- [x] T014 [P] Implement `/health` endpoint and configure Dockerfile for Payment Service in payment/src/ and payment/Dockerfile
+- [x] T015 [P] Implement `/health` endpoint and configure Dockerfile for Review Service in review/src/ and review/Dockerfile
+- [x] T016 [P] Implement `/health` endpoint and configure Dockerfile for Favorites Service in favorites/src/ and favorites/Dockerfile
+- [x] T017 Configure Kafka client wrappers and database connection utilities (PostgreSQL, Redis) for Java services
 
 ### Python Developer Track
 
@@ -75,16 +82,16 @@
 
 ### Go Developer Track
 
-- [ ] T022 [P] [US1] Create Listing model (MongoDB) and POST/GET API endpoints in listing/main.go
-- [ ] T023 [P] [US1] Create Media model (S3/R2) and POST/GET API endpoints for uploads in media/main.go
-- [ ] T024 [P] [US1] Create Booking model (Postgres) and POST/GET API endpoints with Redis Redlock distributed locks in booking/main.go
-- [ ] T025 [P] [US1] Emit `booking.created` event from Booking Service on booking placement in booking/main.go
-- [ ] T026 [P] [US1] Emit `media.uploaded` event from Media Service on successful upload in media/main.go
+- [x] T022 [P] [US1] Create Listing model (MongoDB) and POST/GET API endpoints in listing/main.go
+- [x] T023 [P] [US1] Create Media model (S3/R2) and POST/GET API endpoints for uploads in media/main.go
+- [x] T024 [P] [US1] Create Booking model (Postgres) and POST/GET API endpoints with Redis Redlock distributed locks in booking/main.go
+- [x] T025 [P] [US1] Emit `booking.created` event from Booking Service on booking placement in booking/main.go
+- [x] T026 [P] [US1] Emit `media.uploaded` event from Media Service on successful upload in media/main.go
 
 ### Java Developer Track
 
-- [ ] T027 [P] [US1] Create Review model (Postgres) and POST/GET API endpoints in review/src/
-- [ ] T028 [P] [US1] Create Favorites UserFavorites logic (Redis hash) and POST/GET API endpoints in favorites/src/
+- [x] T027 [P] [US1] Create Review model (Postgres) and POST/GET API endpoints in review/src/
+- [x] T028 [P] [US1] Create Favorites UserFavorites logic (Redis hash) and POST/GET API endpoints in favorites/src/
 
 ### Python Developer Track
 
@@ -103,15 +110,15 @@
 
 ### Go Developer Track
 
-- [ ] T032 [P] [US2] Implement idempotent Kafka consumer for `payment.succeeded` & `payment.failed` in Booking Service (Saga complete/compensate) in booking/main.go
-- [ ] T033 [US2] Emit `booking.confirmed` / `booking.rejected` from Booking Service upon handling payment results in booking/main.go
-- [ ] T034 [P] [US2] Implement Kafka consumer in Listing Service to listen to `booking.confirmed` for availability logic updates, and `media.uploaded` for asset attachments in listing/main.go
+- [x] T032 [P] [US2] Implement idempotent Kafka consumer for `payment.succeeded` & `payment.failed` in Booking Service (Saga complete/compensate) in booking/main.go
+- [x] T033 [US2] Emit `booking.confirmed` / `booking.rejected` from Booking Service upon handling payment results in booking/main.go
+- [x] T034 [P] [US2] Implement Kafka consumer in Listing Service to listen to `booking.confirmed` for availability logic updates, and `media.uploaded` for asset attachments in listing/main.go
 
 ### Java Developer Track
 
-- [ ] T035 [US2] Implement idempotent Kafka consumer (Outbox Pattern or event_id tracking) for `booking.created` in Payment Service in payment/src/
-- [ ] T036 [US2] Integrate Stripe Java SDK to process payment charges (creating PaymentIntents/handling webhooks) in payment/src/
-- [ ] T037 [US2] Implement Event Dispatcher in Payment Service to emit `payment.succeeded` / `payment.failed` after processing with Stripe in payment/src/
+- [x] T035 [US2] Implement idempotent Kafka consumer (Outbox Pattern or event_id tracking) for `booking.created` in Payment Service in payment/src/
+- [x] T036 [US2] Integrate Stripe Java SDK to process payment charges (creating PaymentIntents/handling webhooks) in payment/src/
+- [x] T037 [US2] Implement Event Dispatcher in Payment Service to emit `payment.succeeded` / `payment.failed` after processing with Stripe in payment/src/
 
 ### Python Developer Track
 
@@ -129,11 +136,11 @@
 
 ### Go Developer Track
 
-- [ ] T041 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Go services
+- [x] T041 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Go services
 
 ### Java Developer Track
 
-- [ ] T042 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Java services
+- [x] T042 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Java services
 
 ### Python Developer Track
 
