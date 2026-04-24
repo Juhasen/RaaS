@@ -40,9 +40,9 @@
 
 ### Python Developer Track (Notification, User, Analytics)
 
-- [ ] T007 [P] Initialize Python 3.11+ base structure (FastAPI) for Notification Service in notification/
-- [ ] T008 [P] Initialize Python 3.11+ base structure (FastAPI) for User Service in user/
-- [ ] T009 [P] Initialize Python 3.11+ base structure (FastAPI) for Analytics Service in analytics/
+- [x] T007 [P] Initialize Python 3.11+ base structure (FastAPI) for Notification Service in notification/
+- [x] T008 [P] Initialize Python 3.11+ base structure (FastAPI) for User Service in user/
+- [x] T009 [P] Initialize Python 3.11+ base structure (FastAPI) for Analytics Service in analytics/
 
 ---
 
@@ -66,10 +66,10 @@
 
 ### Python Developer Track
 
-- [ ] T018 [P] Implement `/health` endpoint and configure Dockerfile for Notification Service in notification/main.py and notification/Dockerfile
-- [ ] T019 [P] Implement `/health` endpoint and configure Dockerfile for User Service in user/main.py and user/Dockerfile
-- [ ] T020 [P] Implement `/health` endpoint and configure Dockerfile for Analytics Service in analytics/main.py and analytics/Dockerfile
-- [ ] T021 Configure Kafka client wrappers and database connection utilities (PostgreSQL, MongoDB) for Python services
+- [x] T018 [P] Implement `/health` endpoint and configure Dockerfile for Notification Service in notification/main.py and notification/Dockerfile
+- [x] T019 [P] Implement `/health` endpoint and configure Dockerfile for User Service in user/main.py and user/Dockerfile
+- [x] T020 [P] Implement `/health` endpoint and configure Dockerfile for Analytics Service in analytics/main.py and analytics/Dockerfile
+- [x] T021 Configure Kafka client wrappers and database connection utilities (PostgreSQL, MongoDB) for Python services
 
 **Checkpoint**: Foundation ready for each specific stack - user story implementation can now begin independently
 
@@ -95,9 +95,9 @@
 
 ### Python Developer Track
 
-- [ ] T029 [US1] Create User model (Postgres) and POST/GET API endpoints in user/main.py
-- [ ] T030 [P] [US1] Emit `user.created` event from User Service on successful registration in user/main.py
-- [ ] T031 [P] [US1] Create REST API endpoints for Analytics event ingestion (MongoDB/Postgres) in analytics/main.py
+- [x] T029 [US1] Create User model (Postgres) and POST/GET API endpoints in user/main.py
+- [x] T030 [P] [US1] Emit `user.created` event from User Service on successful registration in user/main.py
+- [x] T031 [P] [US1] Create REST API endpoints for Analytics event ingestion (MongoDB/Postgres) in analytics/main.py
 
 **Checkpoint**: User Story 1 is fully functional across domains
 
@@ -122,9 +122,9 @@
 
 ### Python Developer Track
 
-- [ ] T038 [P] [US2] Implement Kafka consumer in Notification Service to listen for formatting and sending mock notifications on `user.created`, `payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected` in notification/main.py
-- [ ] T039 [P] [US2] Implement idempotent Kafka consumer for `booking.created` in Analytics Service in analytics/main.py
-- [ ] T040 [P] [US2] Implement Kafka consumers in Analytics Service for tracking events (`payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected`, `media.uploaded`) in analytics/main.py
+- [x] T038 [P] [US2] Implement Kafka consumer in Notification Service to listen for formatting and sending mock notifications on `user.created`, `payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected` in notification/main.py
+- [x] T039 [P] [US2] Implement idempotent Kafka consumer for `booking.created` in Analytics Service in analytics/main.py
+- [x] T040 [P] [US2] Implement Kafka consumers in Analytics Service for tracking events (`payment.succeeded`, `payment.failed`, `booking.confirmed`, `booking.rejected`, `media.uploaded`) in analytics/main.py
 
 **Checkpoint**: Saga event-driven lifecycle complete
 
@@ -144,7 +144,7 @@
 
 ### Python Developer Track
 
-- [ ] T043 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Python services
+- [x] T043 Create Kubernetes `deployment.yaml` and `service.yaml` manifests for Python services
 
 ### Cross-Cutting (Any Developer)
 
