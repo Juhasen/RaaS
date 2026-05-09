@@ -7,6 +7,7 @@ This guide documents how developers can spin up the RaaS local Kubernetes infras
 1. Ensure you have a local Kubernetes provider running. Supported providers include:
    - **Docker Desktop** (with kubeadm configured)
 2. Verify `kubectl` is installed and connected:
+
    ```bash
    kubectl get nodes
    ```
