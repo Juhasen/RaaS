@@ -5,9 +5,7 @@ This guide documents how developers can spin up the RaaS local Kubernetes infras
 ## Prerequisites
 
 1. Ensure you have a local Kubernetes provider running. Supported providers include:
-   - **Docker Desktop** (Check "Enable Kubernetes" in settings)
-   - **Minikube** (`minikube start`)
-   - **Kind** (`kind create cluster`)
+   - **Docker Desktop** (with kubeadm configured)
 2. Verify `kubectl` is installed and connected:
    ```bash
    kubectl get nodes
@@ -16,6 +14,7 @@ This guide documents how developers can spin up the RaaS local Kubernetes infras
 ## Memory Consumption Limits
 
 Running the full microservices stack locally requires the following system configurations to ensure cluster stability:
+
 - **Full Stack Emulation**: 8GB RAM minimum, 16GB RAM recommended.
 - **Single Domain Track**: 4GB RAM minimum.
 - **CPU**: 4 virtual CPUs recommended.

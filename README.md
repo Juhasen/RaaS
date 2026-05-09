@@ -100,23 +100,26 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
 
 **Local Kubernetes Workflow** (Recommended)
 
-1.  Start your local Kubernetes cluster (Docker Desktop, Minikube, or Kind).
+1.  Start your local Kubernetes cluster (kubeadm inside Docker Desktop).
 2.  Deploy the infrastructure layer:
     ```bash
     kubectl apply -f k8s/infra/
     ```
 3.  Deploy your domain-specific application track (or all of them):
+
     ```bash
     # Go Developer Track
     kubectl apply -f k8s/apps/go/
-    
+
     # Java Developer Track
     kubectl apply -f k8s/apps/java/
-    
+
     # Python Developer Track
     kubectl apply -f k8s/apps/python/
     ```
-    *Alternatively, you can run the bootstrap script to deploy everything:*
+
+    _Alternatively, you can run the bootstrap script to deploy everything:_
+
     ```bash
     ./scripts/start-local-k8s.sh
     ```

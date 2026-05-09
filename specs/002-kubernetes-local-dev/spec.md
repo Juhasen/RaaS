@@ -9,7 +9,7 @@
 
 ### Session 2026-04-10
 
-- Q: What local Kubernetes provider should be assumed? → A: Assume Docker Desktop with Kubernetes enabled, Minikube, or Kind.
+- Q: What local Kubernetes provider should be assumed? → A: Assume kubeadm inside Docker Desktop.
 - Q: How will backing services (Databases, Kafka) be deployed locally? → A: Create lightweight Kubernetes manifests for infrastructural dependencies alongside the application services.
 - Q: How will developers access the services from their host machine? → A: Use Kubernetes `NodePort` services or document `kubectl port-forward` usage to expose services to localhost.
 
@@ -72,5 +72,5 @@ As a language-specific developer (Go, Java, or Python), I want to be able to dep
 
 ## Assumptions
 
-- Developers have a local Kubernetes environment running (e.g., Docker Desktop, Minikube, Kind) and `kubectl` configured.
+- Developers have a local Kubernetes environment running (e.g., kubeadm inside Docker Desktop) and `kubectl` configured.
 - Local infrastructure pods will use ephemeral or simple local persistent volumes; production-grade storage classes are not needed.

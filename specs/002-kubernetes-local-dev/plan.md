@@ -10,7 +10,7 @@ Implement a local testing environment using Kubernetes manifests instead of Dock
 ## Technical Context
 
 **Language/Version**: N/A (Kubernetes YAML manifests)
-**Primary Dependencies**: Kubernetes (Docker Desktop, Minikube, or Kind), kubectl
+**Primary Dependencies**: Kubernetes (kubeadm inside Docker Desktop), kubectl
 **Storage**: PersistentVolumeClaims (PVCs) for local data persistence
 **Testing**: Local deployment verification (`kubectl apply` and pod health checks)
 **Target Platform**: Local Kubernetes Cluster

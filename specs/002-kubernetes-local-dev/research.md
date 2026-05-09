@@ -5,7 +5,7 @@
 1. **How will backing services (Databases, Kafka) be deployed locally?**
    - **Decision**: Create lightweight Kubernetes manifests for infrastructural dependencies directly mimicking production structures, but tuned for local resources (minimal replicas, nodePorts).
    - **Rationale**: Avoids the "works on my machine" discrepancy between Docker Compose and Production Kubernetes networks.
-   - **Alternatives considered**: Hybrid approach: Docker Compose for infrastructure and Kubernetes for applications. Rejected due to complex networking requirements bridging the Docker bridge network with the Docker Desktop K8s network.
+   - **Alternatives considered**: Hybrid approach: Docker Compose for infrastructure and Kubernetes for applications. Rejected due to complex networking requirements bridging the Docker bridge network with the Docker Desktop K8s network (running kubeadm).
 
 2. **How to handle persistent data for local databases in K8s?**
    - **Decision**: Use standard PersistentVolumeClaims (PVCs) requesting standard storage (`hostPath` or default provisioners).
