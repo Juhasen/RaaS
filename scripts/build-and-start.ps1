@@ -1,3 +1,6 @@
+$repoRoot = Resolve-Path "$PSScriptRoot\.."
+Push-Location $repoRoot
+
 Write-Host "Building Docker images for RaaS microservices..."
 
 # Go Services
@@ -31,13 +34,6 @@ Write-Host "Building Python Service: user..."
 docker build -t raas/user-service:latest ./user
 
 Write-Host "Images built successfully!"
-
-Write-Host "Loading images into Kind cluster..."
-$services = "booking", "listing", "media", "favorites", "payment", "review", "analytics", "notification", "user"
-foreach ($s in $services) {
-    Write-Host "Loading $s-service..."
-    kind load docker-image raas/$s-service:latest --name desktop
-}
 
 Write-Host "Starting Kubernetes deployments..."
 

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: analytics-service
+  name: analytics-deployment
   namespace: default
   labels:
     app: analytics-service
@@ -18,7 +18,7 @@ spec:
       containers:
       - name: analytics-service
         image: raas/analytics-service:latest
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         ports:
         - containerPort: 8008
           name: http

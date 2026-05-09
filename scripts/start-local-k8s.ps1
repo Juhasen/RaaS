@@ -20,7 +20,7 @@ kubectl wait --for=condition=ready pod -l app=kafka -n raas --timeout=120s
 
 Write-Host "Initializing Postgres databases for microservices..."
 $pgPod = (kubectl get pods -n raas -l app=postgres -o jsonpath="{.items[0].metadata.name}")
-$dbs = "payment", "review", "favorites", "`"user`"", "notification", "analytics"
+$dbs = "payment", "review", "favorites", "user_db", "notification", "analytics"
 foreach ($db in $dbs) {
     # We suppress errors because CREATE DATABASE will error if the DB already exists, which is fine
     kubectl exec -n raas $pgPod -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>$null
