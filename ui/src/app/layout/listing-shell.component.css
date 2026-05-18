@@ -1,0 +1,33 @@
+:root {
+  --container-max: 980px;
+}
+
+.listing-header {
+  background: white;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  padding: 0.75rem 1rem;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: inherit;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+}
+
+.nav-link:hover {
+  background: color-mix(in srgb, var(--bright-blue, #0a84ff) 8%, transparent);
+}
+
+.listing-main {
+  max-width: var(--container-max);
+  margin: 1.25rem auto;
+  padding: 0 1rem;
+}

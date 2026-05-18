@@ -57,3 +57,19 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Listing Routes (added by 008-frontend-init)
+
+After running the app, the following routes are available for the listing feature:
+
+- `/listing/create` — Create Listing page (placeholder)
+- `/listing/manage` — Manage Listings page (placeholder)
+- Any unknown route will render a 404 Not Found page with a link back to `/listing/create`.
+
+To run the app locally:
+
+```bash
+ng serve
+```
+
+Open `http://localhost:4200/` then visit the routes above.

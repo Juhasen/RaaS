@@ -1,0 +1,4 @@
+.page { padding: 1rem; }
+.page h2 { margin: 0 0 0.5rem 0; }
+.muted { color: var(--gray-700, #6b7280); }
+.placeholder { margin-top: 1rem; padding: 1rem; border: 1px dashed rgba(0,0,0,0.08); border-radius: 6px; }

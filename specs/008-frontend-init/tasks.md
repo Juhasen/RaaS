@@ -24,7 +24,7 @@ description: "Task list for 008-frontend-init"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create listing feature directories under ui/src/app/layout/ and ui/src/app/pages/
+- [x] T001 Create listing feature directories under ui/src/app/layout/ and ui/src/app/pages/
 
 ---
 
@@ -34,9 +34,9 @@ description: "Task list for 008-frontend-init"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Create listing shell component in ui/src/app/layout/listing-shell.component.ts, ui/src/app/layout/listing-shell.component.html, ui/src/app/layout/listing-shell.component.css with a RouterOutlet wrapper
-- [ ] T003 Create not found component in ui/src/app/pages/not-found/not-found.component.ts, ui/src/app/pages/not-found/not-found.component.html, ui/src/app/pages/not-found/not-found.component.css
-- [ ] T004 Define base route tree with ListingShellComponent and NotFoundComponent in ui/src/app/app.routes.ts (child routes to be added in US1)
+- [x] T002 Create listing shell component in ui/src/app/layout/listing-shell.component.ts, ui/src/app/layout/listing-shell.component.html, ui/src/app/layout/listing-shell.component.css with a RouterOutlet wrapper
+- [x] T003 Create not found component in ui/src/app/pages/not-found/not-found.component.ts, ui/src/app/pages/not-found/not-found.component.html, ui/src/app/pages/not-found/not-found.component.css
+- [x] T004 Define base route tree with ListingShellComponent and NotFoundComponent in ui/src/app/app.routes.ts (child routes to be added in US1)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -50,10 +50,10 @@ description: "Task list for 008-frontend-init"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Create listing create component in ui/src/app/pages/listing-create/listing-create.component.ts, ui/src/app/pages/listing-create/listing-create.component.html, ui/src/app/pages/listing-create/listing-create.component.css
-- [ ] T006 [P] [US1] Create listing manage component in ui/src/app/pages/listing-manage/listing-manage.component.ts, ui/src/app/pages/listing-manage/listing-manage.component.html, ui/src/app/pages/listing-manage/listing-manage.component.css
-- [ ] T007 [US1] Wire `/listing/create` and `/listing/manage` child routes to the new components in ui/src/app/app.routes.ts
-- [ ] T008 [US1] Add navigation links between listing pages in ui/src/app/layout/listing-shell.component.html and link styles in ui/src/app/layout/listing-shell.component.css
+- [x] T005 [P] [US1] Create listing create component in ui/src/app/pages/listing-create/listing-create.component.ts, ui/src/app/pages/listing-create/listing-create.component.html, ui/src/app/pages/listing-create/listing-create.component.css
+- [x] T006 [P] [US1] Create listing manage component in ui/src/app/pages/listing-manage/listing-manage.component.ts, ui/src/app/pages/listing-manage/listing-manage.component.html, ui/src/app/pages/listing-manage/listing-manage.component.css
+- [x] T007 [US1] Wire `/listing/create` and `/listing/manage` child routes to the new components in ui/src/app/app.routes.ts
+- [x] T008 [US1] Add navigation links between listing pages in ui/src/app/layout/listing-shell.component.html and link styles in ui/src/app/layout/listing-shell.component.css
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -67,9 +67,9 @@ description: "Task list for 008-frontend-init"
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Refine shared layout structure (header, nav, main) in ui/src/app/layout/listing-shell.component.html
-- [ ] T010 [US2] Align listing page templates to shared layout spacing classes in ui/src/app/pages/listing-create/listing-create.component.html and ui/src/app/pages/listing-manage/listing-manage.component.html
-- [ ] T011 [US2] Add shared layout styling rules (spacing, max-width, responsive tweaks) in ui/src/app/layout/listing-shell.component.css
+- [x] T009 [US2] Refine shared layout structure (header, nav, main) in ui/src/app/layout/listing-shell.component.html
+- [x] T010 [US2] Align listing page templates to shared layout spacing classes in ui/src/app/pages/listing-create/listing-create.component.html and ui/src/app/pages/listing-manage/listing-manage.component.html
+- [x] T011 [US2] Add shared layout styling rules (spacing, max-width, responsive tweaks) in ui/src/app/layout/listing-shell.component.css
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -83,9 +83,9 @@ description: "Task list for 008-frontend-init"
 
 ### Implementation for User Story 3
 
-- [ ] T012 [P] [US3] Add title and description copy in ui/src/app/pages/listing-create/listing-create.component.html
-- [ ] T013 [P] [US3] Add title and description copy in ui/src/app/pages/listing-manage/listing-manage.component.html
-- [ ] T014 [US3] Add not found page copy and CTA link back to `/listing/create` in ui/src/app/pages/not-found/not-found.component.html
+- [x] T012 [P] [US3] Add title and description copy in ui/src/app/pages/listing-create/listing-create.component.html
+- [x] T013 [P] [US3] Add title and description copy in ui/src/app/pages/listing-manage/listing-manage.component.html
+- [x] T014 [US3] Add not found page copy and CTA link back to `/listing/create` in ui/src/app/pages/not-found/not-found.component.html
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -95,8 +95,8 @@ description: "Task list for 008-frontend-init"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T015 Update ui/README.md with the new listing routes and not found behavior
-- [ ] T016 Validate quickstart scenarios and adjust specs/008-frontend-init/quickstart.md if the steps differ
+- [x] T015 Update ui/README.md with the new listing routes and not found behavior
+- [x] T016 Validate quickstart scenarios and adjust specs/008-frontend-init/quickstart.md if the steps differ
 
 ---
 
