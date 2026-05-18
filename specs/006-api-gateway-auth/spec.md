@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "API gateway entrypoint with auth verification and user context propagation"
 
+## Clarifications
+
+### Session 2026-05-18
+
+- Q: What is the gateway scope for UI requests: pure routing + auth, limited aggregation, or full BFF? -> A: Gateway only routes and verifies auth (no response aggregation).
+- Q: How should access tokens be validated for protected endpoints? -> A: JWT validated locally at the gateway (no per-request calls to the user service).
+- Q: Where should authorization checks run? -> A: Gateway enforces roles and ownership checks (role + resource ownership).
+- Q: Which HTTP status codes should be used for auth and route errors? -> A: 401 unauthenticated, 403 unauthorized, 404 route not found.
+- Q: What is the default protection mode for routes? -> A: Protect all routes by default, explicitly allowlist public endpoints.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Single Entry Point for the UI (Priority: P1)
@@ -70,6 +80,11 @@ As a host or guest, I can only access actions appropriate to my role, and role-r
 - **FR-006**: The system MUST prevent clients from overriding or injecting identity context.
 - **FR-007**: The system MUST return consistent error responses for authentication failures and route not found conditions.
 - **FR-008**: The system MUST enforce role-based access for endpoints that are restricted by role alone.
+- **FR-009**: The entry point MUST proxy backend responses without UI-specific aggregation or reshaping.
+- **FR-010**: The entry point MUST validate JWT access tokens locally without per-request dependency on the user service.
+- **FR-011**: The entry point MUST enforce role and resource ownership checks for protected endpoints where applicable.
+- **FR-012**: The entry point MUST use 401 for unauthenticated requests, 403 for unauthorized requests, and 404 for unknown routes.
+- **FR-013**: The entry point MUST treat routes as protected by default and only expose public endpoints through an explicit allowlist.
 
 Acceptance coverage: The acceptance scenarios in "User Scenarios & Testing" collectively validate FR-001 through FR-008.
 
@@ -93,4 +108,4 @@ Acceptance coverage: The acceptance scenarios in "User Scenarios & Testing" coll
 - The UI will only call the public entry point and will not access internal services directly.
 - A separate identity feature provides access tokens to signed-in users.
 - The initial role set is limited to Host and Guest.
-- Ownership checks for specific resources are handled by downstream services in a separate feature.
+- Ownership checks for protected resources are enforced at the entry point for this feature.
