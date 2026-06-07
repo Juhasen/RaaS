@@ -1,39 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service
-  namespace: default
+  name: user-deployment
+  namespace: raas
   labels:
-    app: notification-service
+    app: user-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: notification-service
+      app: user-service
   template:
     metadata:
       labels:
-        app: notification-service
+        app: user-service
     spec:
       containers:
-      - name: notification-service
-        image: raas/notification-service:latest
-        imagePullPolicy: IfNotPresent
+      - name: user-service
+        image: raas/user-service:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 8003
+        - containerPort: 8002
           name: http
         env:
         - name: PORT
-          value: "8003"
+          value: "8002"
         - name: DATABASE_URL
           valueFrom:
-            secretKeyRef:
-              name: notification-db-secret
-              key: connection-string
+            configMapKeyRef:
+              name: raas-config
+              key: USER_DB_URL
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: kafka:9092
+          valueFrom:
+            configMapKeyRef:
+              name: raas-config
+              key: KAFKA_BROKER
         - name: KAFKA_CLIENT_ID
-          value: notification-service
+          value: user-service
         resources:
           requests:
             memory: "128Mi"
@@ -44,29 +47,30 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8003
+            port: 8002
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
-            port: 8003
+            port: 8002
           initialDelaySeconds: 5
           periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: notification-service
-  namespace: default
+  name: user-service
+  namespace: raas
   labels:
-    app: notification-service
+    app: user-service
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
   - port: 80
-    targetPort: 8003
+    targetPort: 8002
     protocol: TCP
     name: http
+    nodePort: 30021
   selector:
-    app: notification-service
+    app: user-service

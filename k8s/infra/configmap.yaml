@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: raas-config
+  namespace: raas
+data:
+  # Databases
+  POSTGRES_URL: "postgres://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/raas_db"
+  MONGODB_URL: "mongodb://raas_user:raas_password@mongodb.raas.svc.cluster.local:27017"
+  REDIS_URL: "redis://redis.raas.svc.cluster.local:6379"
+  
+  # Messaging
+  KAFKA_BROKER: "kafka.raas.svc.cluster.local:9092"
+  
+  # Java specific JDBC
+  PAYMENT_DB_URL: "jdbc:postgresql://postgres.raas.svc.cluster.local:5432/payment"
+  REVIEW_DB_URL: "jdbc:postgresql://postgres.raas.svc.cluster.local:5432/review"
+  FAVORITES_DB_URL: "jdbc:postgresql://postgres.raas.svc.cluster.local:5432/favorites"
+  
+  # Python DB
+  USER_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/user"
+  NOTIFICATION_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/notification"
+  ANALYTICS_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/analytics"

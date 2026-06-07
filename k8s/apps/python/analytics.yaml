@@ -1,39 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-service
-  namespace: default
+  name: analytics-deployment
+  namespace: raas
   labels:
-    app: user-service
+    app: analytics-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: user-service
+      app: analytics-service
   template:
     metadata:
       labels:
-        app: user-service
+        app: analytics-service
     spec:
       containers:
-      - name: user-service
-        image: raas/user-service:latest
-        imagePullPolicy: IfNotPresent
+      - name: analytics-service
+        image: raas/analytics-service:latest
+        imagePullPolicy: Never
         ports:
-        - containerPort: 8002
+        - containerPort: 8004
           name: http
         env:
         - name: PORT
-          value: "8002"
+          value: "8004"
         - name: DATABASE_URL
           valueFrom:
-            secretKeyRef:
-              name: user-db-secret
-              key: connection-string
+            configMapKeyRef:
+              name: raas-config
+              key: ANALYTICS_DB_URL
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: kafka:9092
+          valueFrom:
+            configMapKeyRef:
+              name: raas-config
+              key: KAFKA_BROKER
         - name: KAFKA_CLIENT_ID
-          value: user-service
+          value: analytics-service
         resources:
           requests:
             memory: "128Mi"
@@ -44,29 +47,30 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8002
+            port: 8004
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
-            port: 8002
+            port: 8004
           initialDelaySeconds: 5
           periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: user-service
-  namespace: default
+  name: analytics-service
+  namespace: raas
   labels:
-    app: user-service
+    app: analytics-service
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
   - port: 80
-    targetPort: 8002
+    targetPort: 8004
     protocol: TCP
     name: http
+    nodePort: 30023
   selector:
-    app: user-service
+    app: analytics-service

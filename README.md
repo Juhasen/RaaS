@@ -98,22 +98,39 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
 
 ## 🚀 Quick Start (Development)
 
-**Docker** and **Docker Compose** are required.
+**Local Kubernetes Workflow** (Recommended)
 
-1.  Clone the repository:
+1.  Start your local Kubernetes cluster (kubeadm inside Docker Desktop).
+2.  Deploy the infrastructure layer:
+    ```bash
+    kubectl apply -f k8s/infra/
+    ```
+3.  Deploy your domain-specific application track (or all of them):
 
     ```bash
-    git clone https://github.com/YourUser/RaaS.git
-    cd RaaS
+    # Go Developer Track
+    kubectl apply -f k8s/apps/go/
+
+    # Java Developer Track
+    kubectl apply -f k8s/apps/java/
+
+    # Python Developer Track
+    kubectl apply -f k8s/apps/python/
     ```
 
-2.  Start infrastructure and services:
+    _Alternatively, you can run the bootstrap script to deploy everything:_
 
+    ```bash
+    ./scripts/start-local-k8s.sh
+    ```
+
+**Docker Compose Workflow** (Legacy)
+
+1.  Start infrastructure and services:
     ```bash
     docker-compose up -d
     ```
-
-3.  Check services status:
+2.  Check services status:
     ```bash
     docker-compose ps
     ```

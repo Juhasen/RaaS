@@ -1,4 +1,4 @@
-package main.java.com.raas.review;
+package com.raas.review;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

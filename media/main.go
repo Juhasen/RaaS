@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/segmentio/kafka-go"
 )
 
 type Media struct {
