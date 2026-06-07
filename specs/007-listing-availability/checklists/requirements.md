@@ -1,3 +1,12 @@
+# Requirements Checklist
+
+- [x] Spec includes prioritized user stories (P1/P2/P3)
+- [x] Functional requirements FR-001..FR-013 defined
+- [x] Success criteria defined
+- [x] Data model described (Listing, AvailabilityBlock, BookingEvent)
+- [ ] Acceptance tests listed and fixtures provided
+- [ ] API contract documented with examples
+- [ ] Edge cases enumerated and handled (tombstones, duplicates, out-of-order)
 # Specification Quality Checklist: Listing Availability Search
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning

@@ -15,6 +15,10 @@
 - Q: What is the maximum search range length? -> A: Maximum 30 nights.
 - Q: Which HTTP status code should be used for validation errors? -> A: Use HTTP 400 for invalid search inputs.
 
+### Session 2026-06-07
+
+- Q: Should price filters use base nightly price or per-date prices? -> A: Use listing's base nightly price only (per-date pricing out of scope for this version).
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -100,6 +104,7 @@ Guests receive clear feedback when their search inputs are invalid and can corre
 - **FR-003**: System MUST allow availability search by date range and a standardized location_id, returning only listings whose stored location matches that identifier.
 - **FR-004**: System MUST treat check-in as inclusive and check-out as exclusive when evaluating overlaps with confirmed bookings.
 - **FR-005**: System MUST support optional minimum and maximum price filters using each listing's base nightly price.
+  Per-date (date-varying) pricing is out of scope for filtering in this version; filters operate on the static base nightly price.
 - **FR-006**: System MUST validate that the search date range has a check-in date before the check-out date and return a clear error when invalid.
 - **FR-007**: System MUST validate that minimum price is less than or equal to maximum price when both are provided and return a clear error when invalid.
 - **FR-008**: System MUST handle repeated booking events for the same booking so availability is updated at most once.
@@ -137,3 +142,13 @@ Guests receive clear feedback when their search inputs are invalid and can corre
 - Only confirmed bookings affect availability; pending or tentative holds are out of scope.
 - Manual availability blocks or overrides are out of scope for this version.
 - Booking events include listing identifier, booking identifier, and start/end dates.
+
+## Implementation Notes (progress)
+
+- Initial implementation in `listing/` service added:
+  - `availability_blocks` collection storing per-day blocks (`listing_id`, `date`, `booking_id`).
+  - `cancellation_tombstones` collection for out-of-order cancellations.
+  - Kafka consumer handles `booking.confirmed` and `booking.cancelled` events (expects `start_date`/`end_date` in YYYY-MM-DD).
+  - API `GET /v1/listings/available` implemented with validation and price/location filters.
+
+These changes are in branch `007-listing-availability` and include basic fixtures under `specs/007-listing-availability/tests/fixtures.json`.
