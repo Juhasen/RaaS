@@ -1,0 +1,12 @@
+ownership_verifiers:
+  listing:
+    resource: listing
+    id_source: path.param.id
+    verifier_endpoint: http://listing:8080/internal/ownership
+    timeout_ms: 2000
+
+  booking:
+    resource: booking
+    id_source: body.bookingId
+    verifier_endpoint: http://booking:8080/internal/ownership
+    timeout_ms: 2000

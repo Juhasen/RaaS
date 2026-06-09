@@ -23,10 +23,10 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create gateway container entrypoint and baseline image config in gateway/Dockerfile
-- [ ] T002 [P] Create base routing config files in gateway/config/routes.yaml and gateway/config/public-routes.yaml
-- [ ] T003 [P] Create initial ownership policy file in gateway/policies/ownership.yaml
-- [ ] T004 [P] Add gateway deployment/service manifest stub in k8s/apps/gateway.yaml
+ - [X] T001 Create gateway container entrypoint and baseline image config in gateway/Dockerfile
+ - [X] T002 [P] Create base routing config files in gateway/config/routes.yaml and gateway/config/public-routes.yaml
+ - [X] T003 [P] Create initial ownership policy file in gateway/policies/ownership.yaml
+ - [X] T004 [P] Add gateway deployment/service manifest stub in k8s/apps/gateway.yaml
 
 ---
 
@@ -36,8 +36,8 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Define shared gateway runtime settings (config sources, request id propagation, timeouts) in gateway/config/gateway.yaml
-- [ ] T006 Define standard error response mapping for auth and routing failures in gateway/config/errors.yaml
+ - [X] T005 Define shared gateway runtime settings (config sources, request id propagation, timeouts) in gateway/config/gateway.yaml
+ - [X] T006 Define standard error response mapping for auth and routing failures in gateway/config/errors.yaml
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -51,10 +51,10 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Populate full routing map (method + path -> backend) in gateway/config/routes.yaml
-- [ ] T008 [P] [US1] Populate explicit public allowlist in gateway/config/public-routes.yaml
-- [ ] T009 [US1] Configure protect-by-default routing behavior and passthrough proxying in gateway/config/gateway.yaml
-- [ ] T010 [US1] Wire gateway service exposure and config mounts for the UI entry point in k8s/apps/gateway.yaml
+ - [X] T007 [US1] Populate full routing map (method + path -> backend) in gateway/config/routes.yaml
+ - [X] T008 [P] [US1] Populate explicit public allowlist in gateway/config/public-routes.yaml
+ - [X] T009 [US1] Configure protect-by-default routing behavior and passthrough proxying in gateway/config/gateway.yaml
+ - [X] T010 [US1] Wire gateway service exposure and config mounts for the UI entry point in k8s/apps/gateway.yaml
 
 **Checkpoint**: User Story 1 should be fully functional and testable independently
 

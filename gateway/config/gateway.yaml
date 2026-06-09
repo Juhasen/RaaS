@@ -1,0 +1,13 @@
+runtime:
+  request_id_header: X-Request-Id
+  protect_by_default: true
+  timeouts:
+    connect_ms: 5000
+    read_ms: 15000
+    write_ms: 15000
+  proxy:
+    preserve_host: true
+    passthrough: true
+
+mounts:
+  config: /etc/gateway/config
