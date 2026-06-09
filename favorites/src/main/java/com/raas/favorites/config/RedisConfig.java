@@ -1,4 +1,4 @@
-package main.java.com.raas.favorites.config;
+package com.raas.favorites.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

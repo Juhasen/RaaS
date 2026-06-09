@@ -1,4 +1,4 @@
-package main.java.com.raas.favorites;
+package com.raas.favorites;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

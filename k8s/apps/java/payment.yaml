@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-deployment
+  namespace: raas
+  labels:
+    app: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: raas/payment-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PAYMENT_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: PAYMENT_DB_URL
+            - name: PAYMENT_DB_USER
+              value: "raas_user"
+            - name: PAYMENT_DB_PASSWORD
+              value: "raas_password"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: KAFKA_BROKER
+            - name: STRIPE_API_KEY
+              value: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: raas
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30011
+  selector:
+    app: payment-service

@@ -1,4 +1,4 @@
-package main.java.com.raas.review.repository;
+package com.raas.review.repository;
 
 import com.raas.review.model.Review;
 import java.util.List;

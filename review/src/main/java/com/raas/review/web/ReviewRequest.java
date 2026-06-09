@@ -1,4 +1,4 @@
-package main.java.com.raas.review.web;
+package com.raas.review.web;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
