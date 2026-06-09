@@ -1,0 +1,12 @@
+roles:
+  host:
+    description: Host account with listing management privileges
+    permissions:
+      - manage:listings
+      - create:media
+
+  guest:
+    description: Guest (consumer) account with limited privileges
+    permissions:
+      - create:bookings
+      - create:reviews

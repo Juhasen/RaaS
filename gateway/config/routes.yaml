@@ -1,0 +1,60 @@
+routes:
+  - id: ui-entry
+    path: "/"
+    method: GET
+    upstream: ui
+    protected: false
+
+  - id: listings
+    path: "/api/listings"
+    method: GET
+    upstream: listing
+    protected: false
+
+  - id: listing-detail
+    path: "/api/listings/{id}"
+    method: GET
+    upstream: listing
+    protected: false
+
+  - id: bookings-create
+    path: "/api/bookings"
+    method: POST
+    upstream: booking
+    protected: true
+    required_roles: ["user"]
+
+  - id: user-service
+    path: "/api/users/{id}"
+    method: GET
+    upstream: user
+    protected: true
+    required_roles: ["user"]
+
+  - id: media-upload
+    path: "/api/media/upload"
+    method: POST
+    upstream: media
+    protected: true
+    required_roles: ["user","host"]
+
+  - id: payment
+    path: "/api/payments"
+    method: POST
+    upstream: payment
+    protected: true
+    required_roles: ["user"]
+
+  - id: review-create
+    path: "/api/reviews"
+    method: POST
+    upstream: review
+    protected: true
+    required_roles: ["user"]
+
+  - id: favorites
+    path: "/api/favorites"
+    method: POST
+    upstream: favorites
+    protected: true
+    required_roles: ["user"]
