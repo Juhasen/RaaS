@@ -11,3 +11,16 @@ runtime:
 
 mounts:
   config: /etc/gateway/config
+
+auth:
+  provider: jwt
+  config_file: /etc/gateway/config/auth.yaml
+  context_file: /etc/gateway/config/auth-context.yaml
+  header_prefix: x-raas-
+  jwks_cache_ttl_seconds: 300
+
+ownership_preflight:
+  enabled: true
+  default_timeout_ms: 2000
+  error_mapping: ownership_failed
+  max_retries: 0

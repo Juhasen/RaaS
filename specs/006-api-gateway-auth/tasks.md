@@ -68,9 +68,9 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Configure JWT validation inputs (issuer, audience, keys/JWKS) in gateway/config/auth.yaml
-- [ ] T012 [P] [US2] Define identity context injection and header stripping rules for x-raas-* in gateway/config/auth-context.yaml
-- [ ] T013 [US2] Attach auth requirements to protected routes in gateway/config/routes.yaml
+ - [X] T011 [US2] Configure JWT validation inputs (issuer, audience, keys/JWKS) in gateway/config/auth.yaml
+ - [X] T012 [P] [US2] Define identity context injection and header stripping rules for x-raas-* in gateway/config/auth-context.yaml
+ - [X] T013 [US2] Attach auth requirements to protected routes in gateway/config/routes.yaml
 
 **Checkpoint**: User Story 2 should be fully functional and testable independently
 
@@ -88,6 +88,10 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 - [ ] T015 [US3] Map required roles per route in gateway/config/routes.yaml
 - [ ] T016 [US3] Define ownership verification rules (resource type, id source, verifier endpoint) in gateway/policies/ownership.yaml
 - [ ] T017 [US3] Configure ownership preflight settings (timeout, error mapping) in gateway/config/gateway.yaml and gateway/config/errors.yaml
+ - [X] T014 [P] [US3] Define role-based policy rules for host and guest in gateway/policies/roles.yaml
+ - [X] T015 [US3] Map required roles per route in gateway/config/routes.yaml
+ - [X] T016 [US3] Define ownership verification rules (resource type, id source, verifier endpoint) in gateway/policies/ownership.yaml
+ - [X] T017 [US3] Configure ownership preflight settings (timeout, error mapping) in gateway/config/gateway.yaml and gateway/config/errors.yaml
 
 **Checkpoint**: User Story 3 should be fully functional and testable independently
 
