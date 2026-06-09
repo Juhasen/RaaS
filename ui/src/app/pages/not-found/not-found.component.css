@@ -1,0 +1,7 @@
+.nf {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.nf h1 { margin-bottom: 0.5rem; }
+.nf p { margin-top: 0.5rem; color: var(--gray-700, #6b7280); }
