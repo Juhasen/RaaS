@@ -23,7 +23,7 @@ kafka_producer = KafkaProducerWrapper()
 
 # Create tables on startup
 try:
-    postgres.engine.create_all(Base.metadata)
+    Base.metadata.create_all(bind=postgres.engine)
     logger.info("Database tables created successfully")
 except Exception as e:
     logger.error(f"Failed to create database tables: {e}")

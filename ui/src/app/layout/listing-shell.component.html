@@ -1,10 +1,40 @@
-<header class="listing-header">
-  <nav class="nav">
-    <a routerLink="/listing/create" class="nav-link">Create Listing</a>
-    <a routerLink="/listing/manage" class="nav-link">Manage Listings</a>
-  </nav>
-</header>
+<div class="shell">
+  <header class="hero">
+    <div class="brand-block">
+      <div class="brand-mark">R</div>
+      <div>
+        <p class="eyebrow">RaaS UI</p>
+        <h1>Listing workspace</h1>
+        <p class="subtitle">A focused shell for creating and managing listings.</p>
+      </div>
+    </div>
 
-<main class="listing-main">
-  <router-outlet></router-outlet>
-</main>
+    <nav class="nav" aria-label="Listing navigation">
+      <a routerLink="/listing/create" routerLinkActive="is-active" class="nav-link">
+        Create listing
+      </a>
+      <a routerLink="/listing/manage" routerLinkActive="is-active" class="nav-link">
+        Manage listings
+      </a>
+    </nav>
+  </header>
+
+  <section class="meta-strip" aria-label="Feature summary">
+    <div>
+      <span class="meta-value">3</span>
+      <span class="meta-label">routes ready</span>
+    </div>
+    <div>
+      <span class="meta-value">1</span>
+      <span class="meta-label">shared shell</span>
+    </div>
+    <div>
+      <span class="meta-value">404</span>
+      <span class="meta-label">fallback active</span>
+    </div>
+  </section>
+
+  <main class="listing-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

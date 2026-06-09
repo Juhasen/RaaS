@@ -5,5 +5,5 @@ pydantic[email]==2.5.0
 python-dotenv==1.0.0
 psycopg2-binary==2.9.9
 sqlalchemy==2.0.23
-kafka-python==2.0.2
+kafka-python-ng==2.2.3
 bcrypt==4.1.1
