@@ -36,6 +36,7 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
+
  - [X] T005 Define shared gateway runtime settings (config sources, request id propagation, timeouts) in gateway/config/gateway.yaml
  - [X] T006 Define standard error response mapping for auth and routing failures in gateway/config/errors.yaml
 
@@ -50,6 +51,7 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 **Independent Test**: Send multiple public and protected requests through the entry point and confirm the correct backend responses.
 
 ### Implementation for User Story 1
+
 
  - [X] T007 [US1] Populate full routing map (method + path -> backend) in gateway/config/routes.yaml
  - [X] T008 [P] [US1] Populate explicit public allowlist in gateway/config/public-routes.yaml
@@ -84,10 +86,6 @@ description: "Task list for API Gateway Entry Point & Auth Context"
 
 ### Implementation for User Story 3
 
-- [ ] T014 [P] [US3] Define role-based policy rules for host and guest in gateway/policies/roles.yaml
-- [ ] T015 [US3] Map required roles per route in gateway/config/routes.yaml
-- [ ] T016 [US3] Define ownership verification rules (resource type, id source, verifier endpoint) in gateway/policies/ownership.yaml
-- [ ] T017 [US3] Configure ownership preflight settings (timeout, error mapping) in gateway/config/gateway.yaml and gateway/config/errors.yaml
  - [X] T014 [P] [US3] Define role-based policy rules for host and guest in gateway/policies/roles.yaml
  - [X] T015 [US3] Map required roles per route in gateway/config/routes.yaml
  - [X] T016 [US3] Define ownership verification rules (resource type, id source, verifier endpoint) in gateway/policies/ownership.yaml

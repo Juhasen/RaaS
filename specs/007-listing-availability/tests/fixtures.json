@@ -1,0 +1,40 @@
+{
+  "listings": [
+    {
+      "_id": "64a7f0d2b1e6c9f1a2b3c4d5",
+      "host_id": "host-1",
+      "title": "Cozy Cabin",
+      "description": "A small cozy cabin",
+      "price_per_day": 100.0,
+      "location_id": "loc-nyc",
+      "location_label": "New York, NY",
+      "status": "AVAILABLE"
+    },
+    {
+      "_id": "64a7f0d2b1e6c9f1a2b3c4d6",
+      "host_id": "host-2",
+      "title": "Beach House",
+      "description": "Sunny beach house",
+      "price_per_day": 250.0,
+      "location_id": "loc-nyc",
+      "location_label": "New York, NY",
+      "status": "AVAILABLE"
+    }
+  ],
+  "events": [
+    {
+      "event": "booking.confirmed",
+      "booking_id": "booking-1",
+      "listing_id": "64a7f0d2b1e6c9f1a2b3c4d5",
+      "start_date": "2026-06-10",
+      "end_date": "2026-06-15"
+    },
+    {
+      "event": "booking.cancelled",
+      "booking_id": "booking-2",
+      "listing_id": "64a7f0d2b1e6c9f1a2b3c4d6",
+      "start_date": "2026-06-12",
+      "end_date": "2026-06-14"
+    }
+  ]
+}

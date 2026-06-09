@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,14 +16,16 @@ import (
 )
 
 type Listing struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	HostID      string             `json:"host_id" bson:"host_id"`
-	Title       string             `json:"title" bson:"title"`
-	Description string             `json:"description" bson:"description"`
-	PricePerDay float64            `json:"price_per_day" bson:"price_per_day"`
-	Status      string             `json:"status" bson:"status"`
-	MediaURLs   []string           `json:"media_urls" bson:"media_urls,omitempty"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
+	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	HostID        string             `json:"host_id" bson:"host_id"`
+	Title         string             `json:"title" bson:"title"`
+	Description   string             `json:"description" bson:"description"`
+	PricePerDay   float64            `json:"price_per_day" bson:"price_per_day"`
+	LocationID    string             `json:"location_id" bson:"location_id"`
+	LocationLabel string             `json:"location_label" bson:"location_label"`
+	Status        string             `json:"status" bson:"status"`
+	MediaURLs     []string           `json:"media_urls" bson:"media_urls,omitempty"`
+	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
 }
 
 func main() {
@@ -56,24 +59,126 @@ func startKafkaConsumers() {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-
-		var event struct {
+		var evt struct {
 			Event     string `json:"event"`
 			ListingID string `json:"listing_id"`
-			URL       string `json:"url"`
+			BookingID string `json:"booking_id"`
+			StartDate string `json:"start_date"`
+			EndDate   string `json:"end_date"`
 		}
-		if err := json.Unmarshal(m.Value, &event); err == nil && MongoClient != nil {
-			objID, errID := primitive.ObjectIDFromHex(event.ListingID)
-			if errID == nil {
-				collection := MongoClient.Database("raas").Collection("listings")
-				if event.Event == "media.uploaded" && event.URL != "" {
-					collection.UpdateOne(context.Background(), bson.M{"_id": objID}, bson.M{"$addToSet": bson.M{"media_urls": event.URL}})
-				} else if event.Event == "booking.confirmed" {
-					collection.UpdateOne(context.Background(), bson.M{"_id": objID}, bson.M{"$set": bson.M{"status": "BOOKED"}})
+		if err := json.Unmarshal(m.Value, &evt); err == nil && MongoClient != nil {
+			// Handle media.uploaded separately if necessary
+			if evt.Event == "media.uploaded" && evt.ListingID != "" {
+				objID, errID := primitive.ObjectIDFromHex(evt.ListingID)
+				if errID == nil {
+					collection := MongoClient.Database("raas").Collection("listings")
+					collection.UpdateOne(context.Background(), bson.M{"_id": objID}, bson.M{"$addToSet": bson.M{"media_urls": evt.BookingID}})
 				}
+			}
+
+			// Booking events
+			if evt.Event == "booking.confirmed" {
+				go func(e interface{}) {
+					_ = processBookingConfirmed(evt.ListingID, evt.BookingID, evt.StartDate, evt.EndDate)
+				}(evt)
+			} else if evt.Event == "booking.cancelled" {
+				go func(e interface{}) {
+					_ = processBookingCancelled(evt.ListingID, evt.BookingID)
+				}(evt)
 			}
 		}
 	}
+}
+
+func availableListingsHandler(c echo.Context) error {
+	checkinStr := c.QueryParam("checkin")
+	checkoutStr := c.QueryParam("checkout")
+	locationID := c.QueryParam("location_id")
+	minPriceStr := c.QueryParam("min_price")
+	maxPriceStr := c.QueryParam("max_price")
+
+	if checkinStr == "" || checkoutStr == "" || locationID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "checkin, checkout and location_id are required"})
+	}
+
+	checkin, err := time.Parse("2006-01-02", checkinStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid checkin date format"})
+	}
+	checkout, err := time.Parse("2006-01-02", checkoutStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid checkout date format"})
+	}
+	if !checkin.Before(checkout) {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "checkin must be before checkout"})
+	}
+	nights := int(checkout.Sub(checkin).Hours() / 24)
+	if nights > 30 {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "search range cannot exceed 30 nights"})
+	}
+
+	var minPrice, maxPrice float64
+	if minPriceStr != "" {
+		if _, err := fmt.Sscanf(minPriceStr, "%f", &minPrice); err != nil {
+			return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid min_price"})
+		}
+	}
+	if maxPriceStr != "" {
+		if _, err := fmt.Sscanf(maxPriceStr, "%f", &maxPrice); err != nil {
+			return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid max_price"})
+		}
+	}
+	if minPriceStr != "" && maxPriceStr != "" && minPrice > maxPrice {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "min_price cannot be greater than max_price"})
+	}
+
+	if MongoClient == nil {
+		return c.JSON(http.StatusServiceUnavailable, echo.Map{"error": "MongoClient is nil"})
+	}
+
+	listingsColl := MongoClient.Database("raas").Collection("listings")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filter := bson.M{"location_id": locationID}
+	if minPriceStr != "" {
+		filter["price_per_day"] = bson.M{"$gte": minPrice}
+	}
+	if maxPriceStr != "" {
+		if _, ok := filter["price_per_day"]; ok {
+			filter["price_per_day"] = bson.M{"$gte": minPrice, "$lte": maxPrice}
+		} else {
+			filter["price_per_day"] = bson.M{"$lte": maxPrice}
+		}
+	}
+
+	cursor, err := listingsColl.Find(ctx, filter)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "db error"})
+	}
+	defer cursor.Close(ctx)
+
+	var results []map[string]interface{}
+	blocksColl := MongoClient.Database("raas").Collection("availability_blocks")
+	for cursor.Next(ctx) {
+		var l Listing
+		if err := cursor.Decode(&l); err != nil {
+			continue
+		}
+
+		// count blocking blocks
+		count, _ := blocksColl.CountDocuments(ctx, bson.M{"listing_id": l.ID, "date": bson.M{"$gte": checkin, "$lt": checkout}})
+		if count == 0 {
+			results = append(results, map[string]interface{}{
+				"listing_id":     l.ID.Hex(),
+				"display_name":   l.Title,
+				"location_label": l.LocationLabel,
+				"base_price":     l.PricePerDay,
+			})
+		}
+	}
+
+	return c.JSON(http.StatusOK, results)
 }
 
 func createListing(c echo.Context) error {
