@@ -32,8 +32,13 @@ kubectl apply -f k8s/apps/go/
 Write-Host "Applying Java applications..."
 kubectl apply -f k8s/apps/java/
 
+# Python Services
 Write-Host "Applying Python applications..."
 kubectl apply -f k8s/apps/python/
+
+# Gateway
+Write-Host "Applying Gateway ConfigMap and Deployment..."
+kubectl apply -f k8s/apps/gateway/
 
 Write-Host "Waiting for all applications to become ready..."
 kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s
@@ -45,5 +50,6 @@ kubectl wait --for=condition=ready pod -l app=favorites-service -n raas --timeou
 kubectl wait --for=condition=ready pod -l app=user-service -n raas --timeout=120s
 kubectl wait --for=condition=ready pod -l app=notification-service -n raas --timeout=120s
 kubectl wait --for=condition=ready pod -l app=analytics-service -n raas --timeout=120s
+kubectl wait --for=condition=ready pod -l app=gateway -n raas --timeout=120s
 
 Write-Host "All services are running!"

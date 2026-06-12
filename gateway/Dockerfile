@@ -1,6 +1,6 @@
 FROM nginx:stable-alpine
 
-# Simple gateway image copying config files into nginx conf.d
-COPY config/ /etc/nginx/conf.d/
+# Copy custom Nginx configuration for service routing
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 CMD ["nginx", "-g", "daemon off;"]
