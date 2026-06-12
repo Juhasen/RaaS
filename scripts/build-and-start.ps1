@@ -33,6 +33,10 @@ docker build -t raas/notification-service:latest ./notification
 Write-Host "Building Python Service: user..."
 docker build -t raas/user-service:latest ./user
 
+# Gateway
+Write-Host "Building Gateway Service: gateway..."
+docker build -t raas/gateway:latest ./gateway
+
 Write-Host "Images built successfully!"
 
 Write-Host "Starting Kubernetes deployments..."

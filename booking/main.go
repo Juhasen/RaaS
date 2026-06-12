@@ -52,6 +52,24 @@ func main() {
 	defer pgPool.Close()
 	log.Println("Connected to PostgreSQL")
 
+	// Create bookings table if it doesn't exist
+	_, err = pgPool.Exec(ctx, `
+		CREATE TABLE IF NOT EXISTS bookings (
+			id VARCHAR(255) PRIMARY KEY,
+			listing_id VARCHAR(255) NOT NULL,
+			guest_id VARCHAR(255) NOT NULL,
+			start_date VARCHAR(10) NOT NULL,
+			end_date VARCHAR(10) NOT NULL,
+			total_price DOUBLE PRECISION NOT NULL,
+			status VARCHAR(50) NOT NULL,
+			created_at TIMESTAMP NOT NULL
+		)
+	`)
+	if err != nil {
+		log.Fatalf("Failed to create bookings table: %v", err)
+	}
+	log.Println("Initialized bookings table")
+
 	// 3. Initialize Redis client & redsync distributed locker
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisURL,
