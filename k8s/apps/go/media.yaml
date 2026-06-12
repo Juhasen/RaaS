@@ -22,6 +22,11 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: raas-config
+                  key: MONGODB_URL
             - name: AWS_REGION
               value: "us-east-1"
             - name: S3_BUCKET
@@ -31,6 +36,10 @@ spec:
                 configMapKeyRef:
                   name: raas-config
                   key: KAFKA_BROKER
+          volumeMounts:
+            - name: env-volume
+              mountPath: /root/.env
+              subPath: .env
           resources:
             requests:
               memory: "64Mi"
@@ -50,6 +59,11 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 5
+      volumes:
+        - name: env-volume
+          secret:
+            secretName: media-env
+            optional: true
 ---
 apiVersion: v1
 kind: Service

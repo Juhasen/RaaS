@@ -107,6 +107,7 @@ func startKafkaConsumers(brokers []string, availService *service.AvailabilitySer
 			Event     string `json:"event"`
 			ListingID string `json:"listing_id"`
 			BookingID string `json:"booking_id"`
+			URL       string `json:"url"`
 			StartDate string `json:"start_date"`
 			EndDate   string `json:"end_date"`
 		}
@@ -117,13 +118,19 @@ func startKafkaConsumers(brokers []string, availService *service.AvailabilitySer
 				objID, errID := primitive.ObjectIDFromHex(evt.ListingID)
 				if errID == nil {
 					collection := repo.GetListingsCollection()
-					_, errUpdate := collection.UpdateOne(
-						context.Background(),
-						bson.M{"_id": objID},
-						bson.M{"$addToSet": bson.M{"media_urls": evt.BookingID}},
-					)
-					if errUpdate != nil {
-						log.Printf("Failed to update media_urls for listing %s: %v", evt.ListingID, errUpdate)
+					mediaURL := evt.URL
+					if mediaURL == "" {
+						mediaURL = evt.BookingID // Fallback to booking_id field if url is empty
+					}
+					if mediaURL != "" {
+						_, errUpdate := collection.UpdateOne(
+							context.Background(),
+							bson.M{"_id": objID},
+							bson.M{"$addToSet": bson.M{"media_urls": mediaURL}},
+						)
+						if errUpdate != nil {
+							log.Printf("Failed to update media_urls for listing %s: %v", evt.ListingID, errUpdate)
+						}
 					}
 				}
 			}
