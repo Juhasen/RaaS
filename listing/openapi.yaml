@@ -1,0 +1,386 @@
+openapi: 3.0.3
+info:
+  title: Listing Microservice API
+  description: API for managing accommodation listings and checking listing availability in RaaS (Rent-a-Space).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: /api
+    description: Gateway proxied URL
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the listing service.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /listings:
+    post:
+      summary: Create a listing
+      description: Creates a new listing with default status AVAILABLE.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+      responses:
+        '201':
+          description: Listing created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List listings or perform availability search
+      description: Returns all listings, or filters by availability if checkin/checkout/location_id parameters are provided.
+      parameters:
+        - name: checkin
+          in: query
+          description: Check-in date (YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: checkout
+          in: query
+          description: Check-out date (YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: location_id
+          in: query
+          description: Standardized location identifier
+          required: false
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Minimum base nightly price limit
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Maximum base nightly price limit
+          required: false
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: A list of listings or available listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  anyOf:
+                    - $ref: '#/components/schemas/Listing'
+                    - $ref: '#/components/schemas/AvailableListing'
+        '400':
+          description: Invalid query parameters or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database or internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /listings/{id}:
+    get:
+      summary: Get a listing by ID
+      description: Retrieves a single listing using its hex-encoded MongoDB ObjectID.
+      parameters:
+        - name: id
+          in: path
+          description: The 24-character hexadecimal ID of the listing
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '200':
+          description: Listing retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Listing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update a listing
+      description: Replaces an existing listing with updated values.
+      parameters:
+        - name: id
+          in: path
+          description: The 24-character hexadecimal ID of the listing to update
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+      responses:
+        '200':
+          description: Listing updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+        '400':
+          description: Invalid request payload or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Listing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a listing
+      description: Deletes an existing listing from the database.
+      parameters:
+        - name: id
+          in: path
+          description: The 24-character hexadecimal ID of the listing to delete
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+      responses:
+        '204':
+          description: Listing deleted successfully (no content returned)
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Listing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/listings/available:
+    get:
+      summary: Search for available listings
+      description: Returns listings that are available for the specified date range, location, and price limits.
+      parameters:
+        - name: checkin
+          in: query
+          description: Check-in date (YYYY-MM-DD)
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: checkout
+          in: query
+          description: Check-out date (YYYY-MM-DD)
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: location_id
+          in: query
+          description: Standardized location identifier
+          required: true
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Minimum base nightly price limit
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Maximum base nightly price limit
+          required: false
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: A list of available listings matching parameters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableListing'
+        '400':
+          description: Query parameter validation error (e.g. check-in >= check-out, duration > 30 nights, min_price > max_price)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ListingInput:
+      type: object
+      required:
+        - host_id
+        - title
+        - description
+        - price_per_day
+        - location_id
+        - location_label
+      properties:
+        host_id:
+          type: string
+          example: host-1
+        title:
+          type: string
+          example: Cozy Cabin
+        description:
+          type: string
+          example: A small cozy cabin
+        price_per_day:
+          type: number
+          format: float
+          example: 100.0
+        location_id:
+          type: string
+          example: loc-nyc
+        location_label:
+          type: string
+          example: New York, NY
+        status:
+          type: string
+          enum: [AVAILABLE, UNAVAILABLE]
+          default: AVAILABLE
+        media_urls:
+          type: array
+          items:
+            type: string
+          example: ["http://example.com/cabin1.jpg"]
+    Listing:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64a7f0d2b1e6c9f1a2b3c4d5
+        host_id:
+          type: string
+          example: host-1
+        title:
+          type: string
+          example: Cozy Cabin
+        description:
+          type: string
+          example: A small cozy cabin
+        price_per_day:
+          type: number
+          format: float
+          example: 100.0
+        location_id:
+          type: string
+          example: loc-nyc
+        location_label:
+          type: string
+          example: New York, NY
+        status:
+          type: string
+          example: AVAILABLE
+        media_urls:
+          type: array
+          items:
+            type: string
+          example: ["http://example.com/cabin1.jpg"]
+        created_at:
+          type: string
+          format: date-time
+          example: 2026-06-12T19:30:00Z
+    AvailableListing:
+      type: object
+      properties:
+        listing_id:
+          type: string
+          example: 64a7f0d2b1e6c9f1a2b3c4d5
+        display_name:
+          type: string
+          example: Cozy Cabin
+        location_label:
+          type: string
+          example: New York, NY
+        base_price:
+          type: number
+          format: float
+          example: 100.0
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: listing not found
