@@ -33,6 +33,10 @@ docker build -t raas/notification-service:latest ./notification
 Write-Host "Building Python Service: user..."
 docker build -t raas/user-service:latest ./user
 
+# UI
+Write-Host "Building UI Service: ui..."
+docker build -t raas/ui-service:latest ./ui
+
 # Gateway
 Write-Host "Building Gateway Service: gateway..."
 docker build -t raas/gateway:latest ./gateway
