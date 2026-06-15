@@ -8,15 +8,15 @@ import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
 	{
-		path: 'listing',
+		path: '',
 		component: ListingShellComponent,
 		children: [
 			{ path: '', component: ListingCatalogComponent },
-			{ path: 'create', component: ListingCreateComponent },
-			{ path: 'manage', component: ListingManageComponent },
-			{ path: ':id', component: ListingDetailComponent }
+			{ path: 'listing', redirectTo: '', pathMatch: 'full' },
+			{ path: 'listing/create', component: ListingCreateComponent },
+			{ path: 'listing/manage', component: ListingManageComponent },
+			{ path: 'listing/:id', component: ListingDetailComponent }
 		]
 	},
-	{ path: '', redirectTo: 'listing', pathMatch: 'full' },
 	{ path: '**', component: NotFoundComponent }
 ];

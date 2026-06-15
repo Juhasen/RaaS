@@ -10,9 +10,22 @@ export class ListingService {
   private http = inject(HttpClient);
   private apiUrl = '/api/listings';
 
-  getListings(hostId?: string): Observable<Listing[]> {
-    const url = hostId ? `${this.apiUrl}?host_id=${hostId}` : this.apiUrl;
-    return this.http.get<Listing[]>(url);
+  getListings(filters?: {
+    host_id?: string;
+    checkin?: string;
+    checkout?: string;
+    location?: string;
+    name?: string;
+  }): Observable<Listing[]> {
+    const params: any = {};
+    if (filters) {
+      if (filters.host_id) params.host_id = filters.host_id;
+      if (filters.checkin) params.checkin = filters.checkin;
+      if (filters.checkout) params.checkout = filters.checkout;
+      if (filters.location) params.location = filters.location;
+      if (filters.name) params.name = filters.name;
+    }
+    return this.http.get<Listing[]>(this.apiUrl, { params });
   }
 
   getListing(id: string): Observable<Listing> {
