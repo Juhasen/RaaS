@@ -33,6 +33,15 @@ func LoadEnv(filePath string) error {
 	}
 	defer file.Close()
 
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return nil // If it's a directory (e.g. empty mounted folder in k8s), ignore it
+	}
+
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -67,34 +76,23 @@ type MediaService struct {
 }
 
 // NewMediaService instantiates a new MediaService.
-func NewMediaService(repo repository.MediaRepository, kafkaBrokers []string, kafkaTopic string) *MediaService {
-	accountID := os.Getenv("R2_ACCOUNT_ID")
-	accessKey := os.Getenv("R2_ACCESS_KEY_ID")
-	secretKey := os.Getenv("R2_SECRET_ACCESS_KEY")
-	bucketName := os.Getenv("R2_BUCKET_NAME")
-	if bucketName == "" {
-		bucketName = os.Getenv("S3_BUCKET")
-		if bucketName == "" {
-			bucketName = "raas-media-bucket"
-		}
-	}
-	publicURL := os.Getenv("R2_PUBLIC_URL")
+func NewMediaService(repo repository.MediaRepository, cfg *Config, kafkaBrokers []string, kafkaTopic string) *MediaService {
+	accountID := cfg.R2AccountID
+	accessKey := cfg.R2AccessKeyID
+	secretKey := cfg.R2SecretAccessKey
+	bucketName := cfg.R2BucketName
+	publicURL := cfg.R2PublicURL
 
 	var s3Client *s3.Client
 	if accountID != "" && accessKey != "" && secretKey != "" {
-		r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				URL:           fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountID),
-				SigningRegion: region,
-			}, nil
-		})
-
-		cfg, err := config.LoadDefaultConfig(context.Background(),
-			config.WithEndpointResolverWithOptions(r2Resolver),
+		awsCfg, err := config.LoadDefaultConfig(context.Background(),
 			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
+			config.WithRegion("auto"),
 		)
 		if err == nil {
-			s3Client = s3.NewFromConfig(cfg)
+			s3Client = s3.NewFromConfig(awsCfg, func(o *s3.Options) {
+				o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountID))
+			})
 			log.Println("Initialized Cloudflare R2 S3 Client successfully")
 		} else {
 			log.Printf("Failed to initialize R2 configuration: %v", err)

@@ -22,4 +22,11 @@ export class ListingService {
   createListing(listing: Listing): Observable<Listing> {
     return this.http.post<Listing>(this.apiUrl, listing);
   }
+
+  uploadPhoto(listingId: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('listing_id', listingId);
+    formData.append('file', file);
+    return this.http.post<any>('/api/media/upload', formData);
+  }
 }

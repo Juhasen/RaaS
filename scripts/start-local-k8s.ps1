@@ -3,6 +3,14 @@ Write-Host "Starting local Kubernetes environment for RaaS..."
 Write-Host "Applying namespace..."
 kubectl apply -f k8s/infra/namespace.yaml
 
+Write-Host "Applying media environment secret..."
+if (Test-Path "media/.env") {
+    kubectl create secret generic media-env --from-file=.env=media/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+} else {
+    Write-Warning "media/.env not found! Creating media-env secret from media/.env.example template instead. Please configure it later."
+    kubectl create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+}
+
 Write-Host "Applying infrastructure configmap..."
 kubectl apply -f k8s/infra/configmap.yaml
 

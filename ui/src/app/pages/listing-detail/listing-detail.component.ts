@@ -19,6 +19,7 @@ export class ListingDetailComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
   fromPage = signal<string>('catalog');
+  activePhotoIndex = signal<number>(0);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -47,6 +48,7 @@ export class ListingDetailComponent implements OnInit {
     this.listingService.getListing(id).subscribe({
       next: (data) => {
         this.listing.set(data);
+        this.activePhotoIndex.set(0);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -55,5 +57,9 @@ export class ListingDetailComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  setActivePhoto(index: number): void {
+    this.activePhotoIndex.set(index);
   }
 }

@@ -66,7 +66,7 @@ func (m *mockMediaRepository) FindByListingID(ctx context.Context, listingID str
 func TestUploadMedia_Validation(t *testing.T) {
 	mockRepo := &mockMediaRepository{}
 	// Instantiate service without brokers (disabling Kafka client initialization)
-	srv := NewMediaService(mockRepo, nil, "")
+	srv := NewMediaService(mockRepo, &Config{}, nil, "")
 
 	// 1. Test invalid type
 	header := &multipart.FileHeader{

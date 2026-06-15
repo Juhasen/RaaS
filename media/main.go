@@ -4,8 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/Juhasen/RaaS/media/handlers"
@@ -22,35 +20,17 @@ func main() {
 		log.Printf("Warning: failed to load .env file: %v", err)
 	}
 
-	// 2. Read environment variables
-	mongoURI := os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
-	}
-
-	mongoDBName := os.Getenv("MONGO_DB_NAME")
-	if mongoDBName == "" {
-		mongoDBName = "media_db"
-	}
-
-	kafkaBrokersStr := os.Getenv("KAFKA_BROKERS")
-	var kafkaBrokers []string
-	if kafkaBrokersStr != "" {
-		kafkaBrokers = strings.Split(kafkaBrokersStr, ",")
-	} else {
-		kafkaBrokers = []string{"localhost:9092"}
-	}
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// 2. Load configuration struct using go-env
+	cfg, err := service.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	// 3. Initialize MongoDB client
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
@@ -62,8 +42,8 @@ func main() {
 	log.Println("Connected to MongoDB")
 
 	// 4. Initialize clean architecture layers
-	repo := repository.NewMongoMediaRepository(client, mongoDBName)
-	mediaService := service.NewMediaService(repo, kafkaBrokers, "system.events")
+	repo := repository.NewMongoMediaRepository(client, cfg.MongoDBName)
+	mediaService := service.NewMediaService(repo, cfg, cfg.KafkaBrokers, "system.events")
 	defer mediaService.Close()
 
 	handler := handlers.NewMediaHandler(mediaService)
@@ -87,6 +67,6 @@ func main() {
 	e.Static("/uploads", "./uploads")
 
 	// 6. Start server
-	log.Printf("Starting media-service on :%s...", port)
-	e.Logger.Fatal(e.Start(":" + port))
+	log.Printf("Starting media-service on :%s...", cfg.Port)
+	e.Logger.Fatal(e.Start(":" + cfg.Port))
 }
