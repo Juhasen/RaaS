@@ -3,6 +3,7 @@ import { ListingShellComponent } from './layout/listing-shell.component';
 import { ListingCatalogComponent } from './pages/listing-catalog/listing-catalog.component';
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
 import { ListingManageComponent } from './pages/listing-manage/listing-manage.component';
+import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
@@ -12,10 +13,10 @@ export const routes: Routes = [
 		children: [
 			{ path: '', component: ListingCatalogComponent },
 			{ path: 'create', component: ListingCreateComponent },
-			{ path: 'manage', component: ListingManageComponent }
+			{ path: 'manage', component: ListingManageComponent },
+			{ path: ':id', component: ListingDetailComponent }
 		]
 	},
 	{ path: '', redirectTo: 'listing', pathMatch: 'full' },
 	{ path: '**', component: NotFoundComponent }
 ];
-

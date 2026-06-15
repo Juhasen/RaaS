@@ -8,15 +8,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListingShellComponent {
-  isDropdownOpen = signal<boolean>(false);
   mockHostId = 'host123';
-
-  toggleDropdown(): void {
-    this.isDropdownOpen.update(v => !v);
-  }
-
-  closeDropdown(): void {
-    this.isDropdownOpen.set(false);
-  }
 }
+
 

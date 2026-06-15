@@ -4,10 +4,19 @@
       <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Manage Listings</h2>
       <p class="text-sm text-zinc-500 mt-1">Review, edit, and keep track of your active rental resources.</p>
     </div>
-    <span class="text-xs text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full font-semibold">
-      {{ listings().length }} {{ listings().length === 1 ? 'Resource' : 'Resources' }} Listed
-    </span>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full font-semibold">
+        {{ listings().length }} {{ listings().length === 1 ? 'Resource' : 'Resources' }} Listed
+      </span>
+      <a routerLink="/listing/create" class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm shadow-indigo-100 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add Listing
+      </a>
+    </div>
   </div>
+
 
   @if (isLoading()) {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -46,7 +55,7 @@
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       @for (listing of listings(); track listing.id) {
-        <div class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200">
+        <a [routerLink]="['/listing', listing.id]" class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block no-underline text-left">
           <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
             @if (listing.media_urls && listing.media_urls.length > 0) {
               <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">
@@ -78,7 +87,7 @@
               <span>ID: {{ listing.location_id }}</span>
             </div>
           </div>
-        </div>
+        </a>
       }
     </div>
   }

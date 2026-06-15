@@ -15,8 +15,11 @@ export class ListingService {
     return this.http.get<Listing[]>(url);
   }
 
+  getListing(id: string): Observable<Listing> {
+    return this.http.get<Listing>(`${this.apiUrl}/${id}`);
+  }
+
   createListing(listing: Listing): Observable<Listing> {
     return this.http.post<Listing>(this.apiUrl, listing);
   }
 }
-

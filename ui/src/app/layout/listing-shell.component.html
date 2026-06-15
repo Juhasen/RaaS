@@ -7,26 +7,12 @@
       <span class="text-lg font-semibold tracking-tight text-zinc-900">Rent as a Service</span>
     </a>
     
-    <div class="relative">
-      <button (click)="toggleDropdown()" class="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 border border-zinc-200 focus:outline-hidden transition-colors duration-150 cursor-pointer">
+    <div>
+      <a routerLink="/listing/manage" class="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-sm font-semibold text-zinc-600 border border-zinc-200 focus:outline-hidden transition-colors duration-150 cursor-pointer" title="Manage Listings">
         H
-      </button>
-
-      @if (isDropdownOpen()) {
-        <!-- Invisible backdrop to dismiss dropdown -->
-        <div class="fixed inset-0 z-40 cursor-default" (click)="closeDropdown()"></div>
-        
-        <!-- Dropdown Menu -->
-        <div class="absolute right-0 mt-2 w-48 bg-white border border-zinc-150 rounded-xl shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
-          <div class="px-4 py-2 border-b border-zinc-100">
-            <p class="text-xs text-zinc-400 font-medium">Logged in as Host</p>
-            <p class="text-xs font-bold text-zinc-700 truncate mt-0.5">{{ mockHostId }}</p>
-          </div>
-          <a routerLink="/listing/create" (click)="closeDropdown()" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors duration-150">Create Listing</a>
-          <a routerLink="/listing/manage" (click)="closeDropdown()" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors duration-150">Manage Listings</a>
-        </div>
-      }
+      </a>
     </div>
+
   </div>
 </header>
 
