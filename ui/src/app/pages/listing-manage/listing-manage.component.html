@@ -55,7 +55,8 @@
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       @for (listing of listings(); track listing.id) {
-        <a [routerLink]="['/listing', listing.id]" class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block no-underline text-left">
+        <a [routerLink]="['/listing', listing.id]" [queryParams]="{ from: 'manage' }" class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block no-underline text-left">
+
           <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
             @if (listing.media_urls && listing.media_urls.length > 0) {
               <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">

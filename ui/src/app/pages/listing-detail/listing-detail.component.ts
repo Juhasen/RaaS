@@ -18,10 +18,17 @@ export class ListingDetailComponent implements OnInit {
   listing = signal<Listing | null>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
+  fromPage = signal<string>('catalog');
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      const from = this.route.snapshot.queryParamMap.get('from');
+      if (from) {
+        this.fromPage.set(from);
+      }
+
       const id = this.route.snapshot.paramMap.get('id');
+
       if (id) {
         this.loadListing(id);
       } else {
