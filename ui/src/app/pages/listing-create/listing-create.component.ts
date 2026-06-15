@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin, of, switchMap } from 'rxjs';
 import { ListingService } from '../../services/listing.service';
 import { Listing } from '../../models/listing.model';
 
@@ -27,6 +28,32 @@ export class ListingCreateComponent {
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
+  selectedFiles = signal<File[]>([]);
+  previewUrls = signal<string[]>([]);
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      const files = Array.from(input.files);
+      this.selectedFiles.update(current => [...current, ...files]);
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            this.previewUrls.update(urls => [...urls, e.target!.result as string]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  removeFile(index: number): void {
+    this.selectedFiles.update(current => current.filter((_, i) => i !== index));
+    this.previewUrls.update(urls => urls.filter((_, i) => i !== index));
+  }
+
   onSubmit(): void {
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
@@ -46,11 +73,24 @@ export class ListingCreateComponent {
       location_label: this.listingForm.value.location_label
     };
 
-    this.listingService.createListing(newListing).subscribe({
+    this.listingService.createListing(newListing).pipe(
+      switchMap((createdListing: Listing) => {
+        const files = this.selectedFiles();
+        if (files.length === 0) {
+          return of(createdListing);
+        }
+        const uploadObservables = files.map(file =>
+          this.listingService.uploadPhoto(createdListing.id!, file)
+        );
+        return forkJoin(uploadObservables);
+      })
+    ).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.successMessage.set('Listing published successfully!');
+        this.successMessage.set('Listing published and photos uploaded successfully!');
         this.listingForm.reset();
+        this.selectedFiles.set([]);
+        this.previewUrls.set([]);
         setTimeout(() => {
           this.router.navigate(['/listing/manage']);
         }, 1500);

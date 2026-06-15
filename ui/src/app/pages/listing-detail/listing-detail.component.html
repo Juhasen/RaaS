@@ -37,7 +37,7 @@
       <!-- Media Image -->
       <div class="aspect-video w-full bg-zinc-50 rounded-xl overflow-hidden flex items-center justify-center text-zinc-300 border border-zinc-100 relative shadow-inner">
         @if (l.media_urls && l.media_urls.length > 0) {
-          <img [src]="l.media_urls[0]" [alt]="l.title" class="w-full h-full object-cover">
+          <img [src]="l.media_urls[activePhotoIndex()] || l.media_urls[0]" [alt]="l.title" class="w-full h-full object-cover">
         } @else {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
@@ -47,6 +47,17 @@
           {{ l.status || 'AVAILABLE' }}
         </span>
       </div>
+
+      <!-- Thumbnail Selector -->
+      @if (l.media_urls && l.media_urls.length > 1) {
+        <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+          @for (url of l.media_urls; track $index) {
+            <button type="button" (click)="setActivePhoto($index)" class="w-16 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer" [class.border-indigo-600]="activePhotoIndex() === $index" [class.border-zinc-200]="activePhotoIndex() !== $index">
+              <img [src]="url" class="w-full h-full object-cover">
+            </button>
+          }
+        </div>
+      }
 
       <!-- Detail Headers -->
       <div class="mt-6 flex items-start justify-between">
