@@ -1,21 +1,31 @@
 <header class="bg-white border-b border-zinc-100 sticky top-0 z-50 shadow-xs">
   <div class="max-w-4xl mx-auto px-4 flex items-center justify-between h-16">
-    <div class="flex items-center gap-8">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
-          R
+    <a routerLink="/listing" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
+        R
+      </div>
+      <span class="text-lg font-semibold tracking-tight text-zinc-900">Rent as a Service</span>
+    </a>
+    
+    <div class="relative">
+      <button (click)="toggleDropdown()" class="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 border border-zinc-200 focus:outline-hidden transition-colors duration-150 cursor-pointer">
+        H
+      </button>
+
+      @if (isDropdownOpen()) {
+        <!-- Invisible backdrop to dismiss dropdown -->
+        <div class="fixed inset-0 z-40 cursor-default" (click)="closeDropdown()"></div>
+        
+        <!-- Dropdown Menu -->
+        <div class="absolute right-0 mt-2 w-48 bg-white border border-zinc-150 rounded-xl shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
+          <div class="px-4 py-2 border-b border-zinc-100">
+            <p class="text-xs text-zinc-400 font-medium">Logged in as Host</p>
+            <p class="text-xs font-bold text-zinc-700 truncate mt-0.5">{{ mockHostId }}</p>
+          </div>
+          <a routerLink="/listing/create" (click)="closeDropdown()" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors duration-150">Create Listing</a>
+          <a routerLink="/listing/manage" (click)="closeDropdown()" class="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors duration-150">Manage Listings</a>
         </div>
-        <span class="text-lg font-semibold tracking-tight text-zinc-900">Rent as a Service</span>
-      </div>
-      <nav class="flex gap-1">
-        <a routerLink="/listing/create" routerLinkActive="bg-indigo-50 text-indigo-600" [routerLinkActiveOptions]="{exact: true}" class="px-4 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors duration-200">Create Listing</a>
-        <a routerLink="/listing/manage" routerLinkActive="bg-indigo-50 text-indigo-600" class="px-4 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors duration-200">Manage Listings</a>
-      </nav>
-    </div>
-    <div class="flex items-center gap-4">
-      <div class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-sm font-medium text-zinc-600 border border-zinc-200">
-        U
-      </div>
+      }
     </div>
   </div>
 </header>
@@ -23,3 +33,4 @@
 <main class="max-w-4xl mx-auto px-4 py-8">
   <router-outlet></router-outlet>
 </main>
+

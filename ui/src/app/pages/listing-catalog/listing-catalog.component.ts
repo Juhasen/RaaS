@@ -1,16 +1,14 @@
 import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { ListingService } from '../../services/listing.service';
 import { Listing } from '../../models/listing.model';
 
 @Component({
-  selector: 'app-listing-manage',
-  imports: [RouterLink],
-  templateUrl: './listing-manage.component.html',
+  selector: 'app-listing-catalog',
+  templateUrl: './listing-catalog.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ListingManageComponent implements OnInit {
+export class ListingCatalogComponent implements OnInit {
   private listingService = inject(ListingService);
   private platformId = inject(PLATFORM_ID);
 
@@ -22,7 +20,6 @@ export class ListingManageComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.loadListings();
     } else {
-      // Set loading to false for server-side prerender
       this.isLoading.set(false);
     }
   }
@@ -33,9 +30,7 @@ export class ListingManageComponent implements OnInit {
 
     this.listingService.getListings().subscribe({
       next: (data) => {
-        // Filter listings to show only those belonging to the mocked host (host123)
-        const hostListings = (data || []).filter(item => item.host_id === 'host123');
-        this.listings.set(hostListings);
+        this.listings.set(data || []);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -46,4 +41,3 @@ export class ListingManageComponent implements OnInit {
     });
   }
 }
-
