@@ -71,9 +71,19 @@ func main() {
 	log.Println("Initialized bookings table")
 
 	// 3. Initialize Redis client & redsync distributed locker
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: redisURL,
-	})
+	var redisOpt *redis.Options
+	if strings.HasPrefix(redisURL, "redis://") || strings.HasPrefix(redisURL, "rediss://") {
+		var err error
+		redisOpt, err = redis.ParseURL(redisURL)
+		if err != nil {
+			log.Fatalf("Failed to parse Redis URL: %v", err)
+		}
+	} else {
+		redisOpt = &redis.Options{
+			Addr: redisURL,
+		}
+	}
+	redisClient := redis.NewClient(redisOpt)
 	defer redisClient.Close()
 	log.Println("Initialized Redis Client")
 

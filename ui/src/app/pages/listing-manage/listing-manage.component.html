@@ -1,13 +1,10 @@
 <section class="max-w-4xl mx-auto py-4">
-  <div class="mb-6 flex items-center justify-between">
+  <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Manage Listings</h2>
-      <p class="text-sm text-zinc-500 mt-1">Review, edit, and keep track of your active rental resources.</p>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Manage Listings & Bookings</h2>
+      <p class="text-sm text-zinc-500 mt-1">Keep track of your active rental resources and reservations.</p>
     </div>
     <div class="flex items-center gap-3">
-      <span class="text-xs text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full font-semibold">
-        {{ listings().length }} {{ listings().length === 1 ? 'Resource' : 'Resources' }} Listed
-      </span>
       <a routerLink="/listing/create" class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm shadow-indigo-100 cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -17,6 +14,30 @@
     </div>
   </div>
 
+  <!-- Modern Pill-style Tab Navigation -->
+  <div class="flex p-1 bg-zinc-100 rounded-xl mb-6 max-w-md">
+    <button (click)="switchTab('listings')" 
+            [class.bg-white]="activeTab() === 'listings'" 
+            [class.text-indigo-600]="activeTab() === 'listings'" 
+            [class.shadow-xs]="activeTab() === 'listings'"
+            class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+      My Listings ({{ listings().length }})
+    </button>
+    <button (click)="switchTab('my-bookings')" 
+            [class.bg-white]="activeTab() === 'my-bookings'" 
+            [class.text-indigo-600]="activeTab() === 'my-bookings'" 
+            [class.shadow-xs]="activeTab() === 'my-bookings'"
+            class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+      My Bookings ({{ myBookings().length }})
+    </button>
+    <button (click)="switchTab('guest-bookings')" 
+            [class.bg-white]="activeTab() === 'guest-bookings'" 
+            [class.text-indigo-600]="activeTab() === 'guest-bookings'" 
+            [class.shadow-xs]="activeTab() === 'guest-bookings'"
+            class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+      Guest Bookings ({{ guestBookings().length }})
+    </button>
+  </div>
 
   @if (isLoading()) {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -32,64 +53,201 @@
       </div>
     </div>
   } @else if (errorMessage()) {
-    <div class="p-6 bg-rose-50 border border-rose-100 text-rose-800 rounded-2xl text-center">
+    <div class="p-6 bg-rose-50 border border-rose-100 text-rose-800 rounded-2xl text-center shadow-xs mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 mx-auto text-rose-500 mb-3">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
       </svg>
       <p class="font-medium text-sm">{{ errorMessage() }}</p>
-      <button (click)="loadListings()" class="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors">
+      <button (click)="loadAllData()" class="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer">
         Retry Load
       </button>
     </div>
-  } @else if (listings().length === 0) {
-    <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
-      </svg>
-      <h3 class="text-base font-bold text-zinc-900 mb-1">No listings published yet</h3>
-      <p class="text-sm text-zinc-500 mb-6">Listings you create will be retrieved and managed here.</p>
-      <a routerLink="/listing/create" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-lg transition-colors">
-        Create Your First Listing
-      </a>
-    </div>
-  } @else {
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      @for (listing of listings(); track listing.id) {
-        <a [routerLink]="['/listing', listing.id]" [queryParams]="{ from: 'manage' }" class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block no-underline text-left">
+  }
 
-          <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
-            @if (listing.media_urls && listing.media_urls.length > 0) {
-              <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
-              </svg>
-            }
-            <span class="absolute top-4 right-4 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-100 uppercase">
-              {{ listing.status || 'AVAILABLE' }}
-            </span>
-          </div>
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-lg font-bold text-zinc-900 truncate mr-2">{{ listing.title }}</h3>
-              <span class="text-lg font-extrabold text-indigo-600 shrink-0">
-                ${{ listing.price_per_day }}<span class="text-xs font-normal text-zinc-500">/day</span>
-              </span>
-            </div>
-            <p class="text-sm text-zinc-500 line-clamp-2 mb-4">{{ listing.description }}</p>
-            <div class="flex items-center justify-between pt-4 border-t border-zinc-100 text-xs text-zinc-500">
-              <span class="flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                </svg>
-                {{ listing.location_label }}
-              </span>
-              <span>ID: {{ listing.location_id }}</span>
-            </div>
-          </div>
+  <!-- Tab 1: Listings -->
+  @if (activeTab() === 'listings' && !isLoading()) {
+    @if (listings().length === 0) {
+      <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
+        </svg>
+        <h3 class="text-base font-bold text-zinc-900 mb-1">No listings published yet</h3>
+        <p class="text-sm text-zinc-500 mb-6">Listings you create will be retrieved and managed here.</p>
+        <a routerLink="/listing/create" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-lg transition-colors">
+          Create Your First Listing
         </a>
-      }
-    </div>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        @for (listing of listings(); track listing.id) {
+          <a [routerLink]="['/listing', listing.id]" [queryParams]="{ from: 'manage' }" class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block no-underline text-left">
+            <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
+              @if (listing.media_urls && listing.media_urls.length > 0) {
+                <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
+                </svg>
+              }
+              <span class="absolute top-4 right-4 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-100 uppercase">
+                {{ listing.status || 'AVAILABLE' }}
+              </span>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-bold text-zinc-900 truncate mr-2">{{ listing.title }}</h3>
+                <span class="text-lg font-extrabold text-indigo-600 shrink-0">
+                  ${{ listing.price_per_day }}<span class="text-xs font-normal text-zinc-500">/day</span>
+                </span>
+              </div>
+              <p class="text-sm text-zinc-500 line-clamp-2 mb-4">{{ listing.description }}</p>
+              <div class="flex items-center justify-between pt-4 border-t border-zinc-100 text-xs text-zinc-500">
+                <span class="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                  </svg>
+                  {{ listing.location_label }}
+                </span>
+                <span>ID: {{ listing.location_id }}</span>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  }
+
+  <!-- Tab 2: My Bookings (as Guest) -->
+  @if (activeTab() === 'my-bookings' && !isLoading()) {
+    @if (myBookings().length === 0) {
+      <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+        </svg>
+        <h3 class="text-base font-bold text-zinc-900 mb-1">No bookings found</h3>
+        <p class="text-sm text-zinc-500 mb-6">You haven't requested any bookings yet.</p>
+        <a routerLink="/listing" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-lg transition-colors">
+          Browse Catalog
+        </a>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (booking of myBookings(); track booking.id) {
+          @let l = getListing(booking.listing_id);
+          <div class="bg-white border border-zinc-100 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center gap-4 flex-1">
+              <!-- Listing Preview Image (Thumbnail) -->
+              <div class="w-16 h-16 rounded-xl bg-zinc-50 border border-zinc-100 overflow-hidden flex-shrink-0 flex items-center justify-center text-zinc-300">
+                @if (l?.media_urls && l!.media_urls!.length > 0) {
+                  <img [src]="l!.media_urls![0]" class="w-full h-full object-cover">
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
+                  </svg>
+                }
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-base font-bold text-zinc-900 truncate">
+                  {{ l?.title || 'Listing ID: ' + booking.listing_id }}
+                </h4>
+                <p class="text-xs text-zinc-500 mt-1 flex items-center gap-2">
+                  <span>{{ booking.start_date }} to {{ booking.end_date }}</span>
+                  <span class="text-zinc-300">•</span>
+                  <span class="font-semibold text-zinc-700">${{ booking.total_price }} total</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Booking Status / Actions -->
+            <div class="flex items-center gap-4">
+              <!-- Status Badge -->
+              <span class="text-xs font-bold px-3 py-1.5 rounded-full border uppercase tracking-wide"
+                    [class.bg-amber-50]="booking.status === 'PENDING'"
+                    [class.text-amber-700]="booking.status === 'PENDING'"
+                    [class.border-amber-100]="booking.status === 'PENDING'"
+                    [class.bg-emerald-50]="booking.status === 'CONFIRMED'"
+                    [class.text-emerald-700]="booking.status === 'CONFIRMED'"
+                    [class.border-emerald-100]="booking.status === 'CONFIRMED'"
+                    [class.bg-rose-50]="booking.status === 'REJECTED'"
+                    [class.text-rose-700]="booking.status === 'REJECTED'"
+                    [class.border-rose-100]="booking.status === 'REJECTED'">
+                {{ booking.status }}
+              </span>
+
+              <!-- Cancel Button -->
+              @if (booking.status !== 'REJECTED') {
+                <button (click)="deleteBooking(booking.id!)" 
+                        class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                  Cancel
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Tab 3: Guest Bookings (Bookings on My Listings) -->
+  @if (activeTab() === 'guest-bookings' && !isLoading()) {
+    @if (guestBookings().length === 0) {
+      <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0110.089 18H8.25c-1.8 0-3.24-1.39-3.24-3.125 0-1.735 1.44-3.125 3.24-3.125h1.839M14.214 16.058A9.814 9.814 0 0016.5 15V8.25m0 0a3.75 3.75 0 10-7.5 0v6.75" />
+        </svg>
+        <h3 class="text-base font-bold text-zinc-900 mb-1">No guest reservations</h3>
+        <p class="text-sm text-zinc-500 mb-6">No users have booked your listings yet.</p>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (booking of guestBookings(); track booking.id) {
+          @let l = getListing(booking.listing_id);
+          <div class="bg-white border border-zinc-100 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="min-w-0">
+                <h4 class="text-base font-bold text-zinc-900 truncate">
+                  {{ l?.title || 'Listing ID: ' + booking.listing_id }}
+                </h4>
+                <p class="text-xs text-zinc-500 mt-1 flex items-center gap-2">
+                  <span class="font-semibold text-indigo-600">Guest ID: {{ booking.guest_id }}</span>
+                  <span class="text-zinc-300">•</span>
+                  <span>{{ booking.start_date }} to {{ booking.end_date }}</span>
+                  <span class="text-zinc-300">•</span>
+                  <span class="font-semibold text-zinc-700">${{ booking.total_price }} total</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Host approval/rejection actions -->
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold px-3 py-1.5 rounded-full border uppercase tracking-wide"
+                    [class.bg-amber-50]="booking.status === 'PENDING'"
+                    [class.text-amber-700]="booking.status === 'PENDING'"
+                    [class.border-amber-100]="booking.status === 'PENDING'"
+                    [class.bg-emerald-50]="booking.status === 'CONFIRMED'"
+                    [class.text-emerald-700]="booking.status === 'CONFIRMED'"
+                    [class.border-emerald-100]="booking.status === 'CONFIRMED'"
+                    [class.bg-rose-50]="booking.status === 'REJECTED'"
+                    [class.text-rose-700]="booking.status === 'REJECTED'"
+                    [class.border-rose-100]="booking.status === 'REJECTED'">
+                {{ booking.status }}
+              </span>
+
+              @if (booking.status === 'PENDING') {
+                <button (click)="updateBookingStatus(booking.id!, 'CONFIRMED')" 
+                        class="text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-xs shadow-indigo-100">
+                  Approve
+                </button>
+                <button (click)="updateBookingStatus(booking.id!, 'REJECTED')" 
+                        class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 border border-zinc-200 hover:border-zinc-300 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                  Reject
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
   }
 </section>
