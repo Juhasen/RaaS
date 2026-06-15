@@ -25,6 +25,8 @@ export class ListingCatalogComponent implements OnInit {
   locationFilter = signal<string>('');
   nameFilter = signal<string>('');
 
+  private isFirstLoad = true;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadListings();
@@ -34,7 +36,10 @@ export class ListingCatalogComponent implements OnInit {
   }
 
   loadListings(): void {
-    this.isLoading.set(true);
+    if (this.isFirstLoad) {
+      this.isLoading.set(true);
+      this.isFirstLoad = false;
+    }
     this.errorMessage.set(null);
 
     const filters: any = {};
