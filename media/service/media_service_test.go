@@ -62,6 +62,9 @@ func (m *mockMediaRepository) FindByID(ctx context.Context, id string) (*models.
 func (m *mockMediaRepository) FindByListingID(ctx context.Context, listingID string) ([]*models.Media, error) {
 	return nil, nil
 }
+func (m *mockMediaRepository) DeleteByListingID(ctx context.Context, listingID string) error {
+	return nil
+}
 
 func TestUploadMedia_Validation(t *testing.T) {
 	mockRepo := &mockMediaRepository{}

@@ -36,6 +36,10 @@ export class ListingService {
     return this.http.post<Listing>(this.apiUrl, listing);
   }
 
+  deleteListing(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
   uploadPhoto(listingId: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('listing_id', listingId);

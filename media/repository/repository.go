@@ -14,6 +14,7 @@ type MediaRepository interface {
 	Save(ctx context.Context, media *models.Media) error
 	FindByID(ctx context.Context, id string) (*models.Media, error)
 	FindByListingID(ctx context.Context, listingID string) ([]*models.Media, error)
+	DeleteByListingID(ctx context.Context, listingID string) error
 }
 
 // MongoMediaRepository is a MongoDB implementation of MediaRepository.
@@ -67,4 +68,10 @@ func (r *MongoMediaRepository) FindByListingID(ctx context.Context, listingID st
 		return nil, err
 	}
 	return list, nil
+}
+
+// DeleteByListingID removes all media records for a given listing ID.
+func (r *MongoMediaRepository) DeleteByListingID(ctx context.Context, listingID string) error {
+	_, err := r.collection.DeleteMany(ctx, bson.M{"listing_id": listingID})
+	return err
 }

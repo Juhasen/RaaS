@@ -13,6 +13,7 @@ import (
 	"listing/models"
 	"listing/repository"
 
+	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,12 +26,13 @@ var (
 
 // ListingService orchestrates listing-related operations.
 type ListingService struct {
-	repo *repository.MongoRepository
+	repo        *repository.MongoRepository
+	kafkaWriter *kafka.Writer
 }
 
 // NewListingService creates and returns a ListingService instance.
-func NewListingService(repo *repository.MongoRepository) *ListingService {
-	return &ListingService{repo: repo}
+func NewListingService(repo *repository.MongoRepository, kw *kafka.Writer) *ListingService {
+	return &ListingService{repo: repo, kafkaWriter: kw}
 }
 
 // CreateListing prepares and stores a new Listing.
@@ -100,6 +102,23 @@ func (s *ListingService) DeleteListing(ctx context.Context, idStr string) error 
 		}
 		return err
 	}
+
+	// Publish listing.deleted event to Kafka
+	if s.kafkaWriter != nil {
+		eventMsg := fmt.Sprintf(`{"event":"listing.deleted","listing_id":"%s"}`, idStr)
+		err := s.kafkaWriter.WriteMessages(ctx,
+			kafka.Message{
+				Key:   []byte(idStr),
+				Value: []byte(eventMsg),
+			},
+		)
+		if err != nil {
+			log.Printf("Failed to emit Kafka listing.deleted event: %v", err)
+		} else {
+			log.Printf("Emitted Kafka listing.deleted event for listing %s", idStr)
+		}
+	}
+
 	return nil
 }
 

@@ -53,7 +53,15 @@ func main() {
 
 	// 3. Initialize repository, services, and handlers
 	repo := repository.NewMongoRepository(client, "raas")
-	listingService := service.NewListingService(repo)
+
+	kafkaWriter := &kafka.Writer{
+		Addr:     kafka.TCP(kafkaBrokers...),
+		Topic:    "system.events",
+		Balancer: &kafka.LeastBytes{},
+	}
+	defer kafkaWriter.Close()
+
+	listingService := service.NewListingService(repo, kafkaWriter)
 	availService := service.NewAvailabilityService(repo)
 
 	availHandler := handlers.NewAvailabilityHandler(availService)

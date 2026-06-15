@@ -230,6 +230,46 @@ func (s *MediaService) FindByListingID(ctx context.Context, listingID string) ([
 	return s.repo.FindByListingID(ctx, listingID)
 }
 
+// DeleteMediaByListingID removes the local directory or R2 objects associated with listingID, and deletes database records.
+func (s *MediaService) DeleteMediaByListingID(ctx context.Context, listingID string) error {
+	// 1. Fetch metadata records first
+	mediaList, err := s.repo.FindByListingID(ctx, listingID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch media list: %w", err)
+	}
+
+	// 2. Delete actual files
+	if s.s3Client != nil {
+		// Delete objects from Cloudflare R2
+		for _, m := range mediaList {
+			ext := filepath.Ext(m.URL)
+			key := fmt.Sprintf("%s/%s%s", listingID, m.ID, ext)
+
+			_, err = s.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+				Bucket: aws.String(s.bucketName),
+				Key:    aws.String(key),
+			})
+			if err != nil {
+				log.Printf("Warning: failed to delete S3 object %s: %v", key, err)
+			}
+		}
+	} else {
+		// Delete local directory
+		destPath := filepath.Join(s.localStorage, listingID)
+		if err := os.RemoveAll(destPath); err != nil {
+			log.Printf("Warning: failed to delete local media directory %s: %v", destPath, err)
+		}
+	}
+
+	// 3. Delete metadata records from DB
+	if err := s.repo.DeleteByListingID(ctx, listingID); err != nil {
+		return fmt.Errorf("failed to delete media database records: %w", err)
+	}
+
+	log.Printf("Successfully cleaned up media for listing %s", listingID)
+	return nil
+}
+
 // Close closes S3 and Kafka connections gracefully.
 func (s *MediaService) Close() {
 	if s.kafkaWriter != nil {
