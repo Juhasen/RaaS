@@ -76,24 +76,35 @@ func (r *MongoRepository) DeleteListing(ctx context.Context, id primitive.Object
 	return nil
 }
 
-// ListListings retrieves all Listings that match the provided BSON filter query.
-func (r *MongoRepository) ListListings(ctx context.Context, filter bson.M) ([]models.Listing, error) {
+// ListListings retrieves a paginated slice of Listings that match the provided BSON filter query.
+func (r *MongoRepository) ListListings(ctx context.Context, filter bson.M, page, limit int64) ([]models.Listing, int64, error) {
 	coll := r.GetListingsCollection()
-	cursor, err := coll.Find(ctx, filter)
+
+	total, err := coll.CountDocuments(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	opts := options.Find().
+		SetSkip((page - 1) * limit).
+		SetLimit(limit).
+		SetSort(bson.D{{Key: "created_at", Value: -1}})
+
+	cursor, err := coll.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var list []models.Listing
 	if err := cursor.All(ctx, &list); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	// Return empty slice instead of nil for clean JSON arrays
 	if list == nil {
 		list = []models.Listing{}
 	}
-	return list, nil
+	return list, total, nil
 }
 
 // UpsertAvailabilityBlock upserts an AvailabilityBlock document keyed by booking_id+date.

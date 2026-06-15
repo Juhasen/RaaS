@@ -10,3 +10,10 @@ export interface Listing {
   media_urls?: string[] | null;
   created_at?: string;
 }
+
+export interface PaginatedListings {
+  data: Listing[];
+  total: number;
+  page: number;
+  limit: number;
+}

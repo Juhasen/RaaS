@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Listing } from '../models/listing.model';
+import { Listing, PaginatedListings } from '../models/listing.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +16,9 @@ export class ListingService {
     checkout?: string;
     location?: string;
     name?: string;
-  }): Observable<Listing[]> {
+    page?: number;
+    limit?: number;
+  }): Observable<PaginatedListings> {
     const params: any = {};
     if (filters) {
       if (filters.host_id) params.host_id = filters.host_id;
@@ -25,7 +27,9 @@ export class ListingService {
       if (filters.location) params.location = filters.location;
       if (filters.name) params.name = filters.name;
     }
-    return this.http.get<Listing[]>(this.apiUrl, { params });
+    params.page = (filters?.page ?? 1).toString();
+    params.limit = (filters?.limit ?? 20).toString();
+    return this.http.get<PaginatedListings>(this.apiUrl, { params });
   }
 
   getListing(id: string): Observable<Listing> {

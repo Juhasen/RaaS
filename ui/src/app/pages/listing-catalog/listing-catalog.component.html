@@ -140,5 +140,24 @@
       }
     </div>
 
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-center gap-2 mt-6">
+        <button (click)="goToPage(currentPage() - 1)" 
+                [disabled]="currentPage() <= 1"
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+          Previous
+        </button>
+        <span class="text-xs text-zinc-500">
+          Page {{ currentPage() }} of {{ totalPages() }}
+        </span>
+        <button (click)="goToPage(currentPage() + 1)" 
+                [disabled]="currentPage() >= totalPages()"
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+          Next
+        </button>
+      </div>
+    }
+
   }
 </section>

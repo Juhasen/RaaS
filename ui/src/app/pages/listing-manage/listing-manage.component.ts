@@ -45,12 +45,14 @@ export class ListingManageComponent implements OnInit {
     this.errorMessage.set(null);
 
     // 1. Fetch all listings to resolve titles/images for bookings
-    this.listingService.getListings().subscribe({
-      next: (allListings) => {
-        this.allListingsMap.set(allListings || []);
+    // ponytail: high limit to get all listings for cross-referencing bookings
+    this.listingService.getListings({ limit: 100 }).subscribe({
+      next: (res) => {
+        const allListings = res.data || [];
+        this.allListingsMap.set(allListings);
 
         // Filter listings owned by this host
-        const myOwnedListings = (allListings || []).filter(l => l.host_id === this.mockHostId);
+        const myOwnedListings = allListings.filter(l => l.host_id === this.mockHostId);
         this.listings.set(myOwnedListings);
 
         const myOwnedIds = new Set(myOwnedListings.map(l => l.id));
