@@ -1,4 +1,0 @@
-identity_injection:
-  header_prefix: x-raas-
-  inject_claims: ["sub", "email", "roles"]
-  strip_headers: true
