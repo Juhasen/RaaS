@@ -117,6 +117,7 @@ func main() {
 	e.PUT("/bookings/:id", handler.UpdateBooking)
 	e.DELETE("/bookings/:id", handler.DeleteBooking)
 	e.GET("/bookings", handler.ListBookings)
+	e.GET("/bookings/active", handler.ListActiveBookings)
 
 	// 7. Start Kafka payment event consumers
 	go startKafkaConsumers(kafkaBrokers, bookingService)

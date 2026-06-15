@@ -19,6 +19,14 @@ export class ListingCatalogComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
+  // Filter signals
+  checkinFilter = signal<string>('');
+  checkoutFilter = signal<string>('');
+  locationFilter = signal<string>('');
+  nameFilter = signal<string>('');
+
+  private isFirstLoad = true;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadListings();
@@ -28,10 +36,25 @@ export class ListingCatalogComponent implements OnInit {
   }
 
   loadListings(): void {
-    this.isLoading.set(true);
+    if (this.isFirstLoad) {
+      this.isLoading.set(true);
+      this.isFirstLoad = false;
+    }
     this.errorMessage.set(null);
 
-    this.listingService.getListings().subscribe({
+    const filters: any = {};
+    if (this.checkinFilter() && this.checkoutFilter()) {
+      filters.checkin = this.checkinFilter();
+      filters.checkout = this.checkoutFilter();
+    }
+    if (this.locationFilter()) {
+      filters.location = this.locationFilter();
+    }
+    if (this.nameFilter()) {
+      filters.name = this.nameFilter();
+    }
+
+    this.listingService.getListings(filters).subscribe({
       next: (data) => {
         this.listings.set(data || []);
         this.isLoading.set(false);
@@ -42,5 +65,41 @@ export class ListingCatalogComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  onLocationInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.locationFilter.set(val);
+    this.loadListings();
+  }
+
+  onNameInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.nameFilter.set(val);
+    this.loadListings();
+  }
+
+  onCheckinChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.checkinFilter.set(val);
+    if (this.checkoutFilter()) {
+      this.loadListings();
+    }
+  }
+
+  onCheckoutChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.checkoutFilter.set(val);
+    if (this.checkinFilter()) {
+      this.loadListings();
+    }
+  }
+
+  clearFilters(): void {
+    this.checkinFilter.set('');
+    this.checkoutFilter.set('');
+    this.locationFilter.set('');
+    this.nameFilter.set('');
+    this.loadListings();
   }
 }

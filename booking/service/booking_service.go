@@ -52,6 +52,13 @@ func (s *BookingService) CreateBooking(ctx context.Context, b *models.Booking) e
 		}()
 	}
 
+	if b.StartDate == "" || b.EndDate == "" {
+		return errors.New("start date and end date are required")
+	}
+	if b.StartDate >= b.EndDate {
+		return errors.New("start date must be before end date")
+	}
+
 	b.ID = uuid.NewString()
 	b.Status = "PENDING"
 	b.CreatedAt = time.Now()
@@ -138,13 +145,37 @@ func (s *BookingService) UpdateBooking(ctx context.Context, id string, updated *
 
 // DeleteBooking deletes a booking from Postgres.
 func (s *BookingService) DeleteBooking(ctx context.Context, id string) error {
-	err := s.repo.DeleteBooking(ctx, id)
+	b, err := s.repo.GetBookingByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
 		}
 		return err
 	}
+
+	err = s.repo.DeleteBooking(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Emit booking.cancelled event to Kafka so the listing service frees availability
+	if s.kafkaWriter != nil {
+		eventMsg := fmt.Sprintf(`{"event":"booking.cancelled","booking_id":"%s","listing_id":"%s"}`,
+			b.ID, b.ListingID,
+		)
+		errEvt := s.kafkaWriter.WriteMessages(ctx,
+			kafka.Message{
+				Key:   []byte(b.ID),
+				Value: []byte(eventMsg),
+			},
+		)
+		if errEvt != nil {
+			log.Printf("Failed to emit booking.cancelled event: %v", errEvt)
+		} else {
+			log.Printf("Emitted booking.cancelled event for booking %s", b.ID)
+		}
+	}
+
 	return nil
 }
 
@@ -190,4 +221,9 @@ func (s *BookingService) ProcessPaymentEvent(ctx context.Context, eventName, boo
 	}
 
 	return nil
+}
+
+// ListActiveBookings queries active bookings overlapping with the range.
+func (s *BookingService) ListActiveBookings(ctx context.Context, startDate, endDate string) ([]models.Booking, error) {
+	return s.repo.ListActiveBookings(ctx, startDate, endDate)
 }
