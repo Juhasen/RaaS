@@ -99,16 +99,18 @@ func (h *ListingHandler) ListListings(c echo.Context) error {
 	checkin := c.QueryParam("checkin")
 	checkout := c.QueryParam("checkout")
 	locationID := c.QueryParam("location_id")
+	hostID := c.QueryParam("host_id")
 
 	// If query parameters for search are present, delegate to availability handler
 	if checkin != "" || checkout != "" || locationID != "" {
 		return h.availabilityHandler.GetAvailableListings(c)
 	}
 
-	list, err := h.listingService.ListListings(c.Request().Context())
+	list, err := h.listingService.ListListings(c.Request().Context(), hostID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to list listings"})
 	}
 
 	return c.JSON(http.StatusOK, list)
 }
+

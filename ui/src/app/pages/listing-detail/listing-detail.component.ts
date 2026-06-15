@@ -1,49 +1,59 @@
 import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ListingService } from '../../services/listing.service';
 import { Listing } from '../../models/listing.model';
 
 @Component({
-  selector: 'app-listing-manage',
+  selector: 'app-listing-detail',
   imports: [RouterLink],
-  templateUrl: './listing-manage.component.html',
+  templateUrl: './listing-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ListingManageComponent implements OnInit {
+export class ListingDetailComponent implements OnInit {
+  private route = inject(ActivatedRoute);
   private listingService = inject(ListingService);
   private platformId = inject(PLATFORM_ID);
 
-  listings = signal<Listing[]>([]);
+  listing = signal<Listing | null>(null);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
-  mockHostId = 'host123';
+  fromPage = signal<string>('catalog');
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.loadListings();
+      const from = this.route.snapshot.queryParamMap.get('from');
+      if (from) {
+        this.fromPage.set(from);
+      }
+
+      const id = this.route.snapshot.paramMap.get('id');
+
+      if (id) {
+        this.loadListing(id);
+      } else {
+        this.isLoading.set(false);
+        this.errorMessage.set('Invalid Listing ID.');
+      }
     } else {
-      // Set loading to false for server-side prerender
       this.isLoading.set(false);
     }
   }
 
-  loadListings(): void {
+  loadListing(id: string): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.listingService.getListings(this.mockHostId).subscribe({
+    this.listingService.getListing(id).subscribe({
       next: (data) => {
-        this.listings.set(data || []);
+        this.listing.set(data);
         this.isLoading.set(false);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set('Failed to load listings. Please make sure the service is running.');
+        this.errorMessage.set('Failed to load listing details. Please try again.');
         console.error(err);
       }
     });
   }
 }
-
-

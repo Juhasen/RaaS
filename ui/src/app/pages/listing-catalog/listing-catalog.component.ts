@@ -5,25 +5,24 @@ import { ListingService } from '../../services/listing.service';
 import { Listing } from '../../models/listing.model';
 
 @Component({
-  selector: 'app-listing-manage',
+  selector: 'app-listing-catalog',
   imports: [RouterLink],
-  templateUrl: './listing-manage.component.html',
+  templateUrl: './listing-catalog.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ListingManageComponent implements OnInit {
+export class ListingCatalogComponent implements OnInit {
+
   private listingService = inject(ListingService);
   private platformId = inject(PLATFORM_ID);
 
   listings = signal<Listing[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
-  mockHostId = 'host123';
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadListings();
     } else {
-      // Set loading to false for server-side prerender
       this.isLoading.set(false);
     }
   }
@@ -32,7 +31,7 @@ export class ListingManageComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.listingService.getListings(this.mockHostId).subscribe({
+    this.listingService.getListings().subscribe({
       next: (data) => {
         this.listings.set(data || []);
         this.isLoading.set(false);
@@ -45,5 +44,3 @@ export class ListingManageComponent implements OnInit {
     });
   }
 }
-
-
