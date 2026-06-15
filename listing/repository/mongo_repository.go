@@ -135,6 +135,31 @@ func (r *MongoRepository) CountAvailabilityBlocks(ctx context.Context, listingID
 	return count, nil
 }
 
+// GetBlockedListingIDs returns listing IDs that have availability blocks in the range [start, end).
+func (r *MongoRepository) GetBlockedListingIDs(ctx context.Context, start, end time.Time) ([]primitive.ObjectID, error) {
+	coll := r.GetBlocksCollection()
+	filter := bson.M{
+		"date": bson.M{
+			"$gte": start,
+			"$lt":  end,
+		},
+	}
+	values, err := coll.Distinct(ctx, "listing_id", filter)
+	if err != nil {
+		return nil, err
+	}
+	var blockedIDs []primitive.ObjectID
+	for _, val := range values {
+		if oid, ok := val.(primitive.ObjectID); ok {
+			blockedIDs = append(blockedIDs, oid)
+		}
+	}
+	if blockedIDs == nil {
+		blockedIDs = []primitive.ObjectID{}
+	}
+	return blockedIDs, nil
+}
+
 // CreateTombstone inserts a cancellation tombstone to prevent late bookings.
 func (r *MongoRepository) CreateTombstone(ctx context.Context, tombstone *models.CancellationTombstone) error {
 	coll := r.GetTombstonesCollection()

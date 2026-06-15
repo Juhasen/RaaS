@@ -2,7 +2,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
 	"time"
 
 	"listing/models"
@@ -98,12 +103,96 @@ func (s *ListingService) DeleteListing(ctx context.Context, idStr string) error 
 	return nil
 }
 
-// ListListings retrieves all or filtered Listings from the database.
-func (s *ListingService) ListListings(ctx context.Context, hostID string) ([]models.Listing, error) {
-	filter := bson.M{}
+// ListListings retrieves Listings matching the optional filters.
+func (s *ListingService) ListListings(ctx context.Context, hostID, checkinStr, checkoutStr, location, name string) ([]models.Listing, error) {
+	var filterParts []bson.M
+
 	if hostID != "" {
-		filter["host_id"] = hostID
+		filterParts = append(filterParts, bson.M{"host_id": hostID})
 	}
+
+	if checkinStr != "" && checkoutStr != "" {
+		blockedIDs, err := s.getBlockedListingIDsFromBookingService(ctx, checkinStr, checkoutStr)
+		if err != nil {
+			log.Printf("Booking service unavailable, falling back to local MongoDB blocks: %v", err)
+			start, errStart := time.Parse("2006-01-02", checkinStr)
+			end, errEnd := time.Parse("2006-01-02", checkoutStr)
+			if errStart == nil && errEnd == nil {
+				var mongoErr error
+				blockedIDs, mongoErr = s.repo.GetBlockedListingIDs(ctx, start, end)
+				if mongoErr != nil {
+					log.Printf("Failed to get local MongoDB blocked listing IDs: %v", mongoErr)
+				}
+			}
+		}
+
+		if len(blockedIDs) > 0 {
+			filterParts = append(filterParts, bson.M{"_id": bson.M{"$nin": blockedIDs}})
+		}
+	}
+
+	if location != "" {
+		filterParts = append(filterParts, bson.M{"$or": []bson.M{
+			{"location_label": bson.M{"$regex": location, "$options": "i"}},
+			{"location_id": bson.M{"$regex": location, "$options": "i"}},
+		}})
+	}
+
+	if name != "" {
+		filterParts = append(filterParts, bson.M{"$or": []bson.M{
+			{"title": bson.M{"$regex": name, "$options": "i"}},
+			{"description": bson.M{"$regex": name, "$options": "i"}},
+		}})
+	}
+
+	var filter bson.M
+	if len(filterParts) > 0 {
+		filter = bson.M{"$and": filterParts}
+	} else {
+		filter = bson.M{}
+	}
+
 	return s.repo.ListListings(ctx, filter)
+}
+
+func (s *ListingService) getBlockedListingIDsFromBookingService(ctx context.Context, start, end string) ([]primitive.ObjectID, error) {
+	bookingURL := os.Getenv("BOOKING_SERVICE_URL")
+	if bookingURL == "" {
+		bookingURL = "http://booking-service"
+	}
+	url := fmt.Sprintf("%s/bookings/active?start_date=%s&end_date=%s", bookingURL, start, end)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %d", resp.StatusCode)
+	}
+
+	var bookings []struct {
+		ListingID string `json:"listing_id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&bookings); err != nil {
+		return nil, err
+	}
+
+	var blockedIDs []primitive.ObjectID
+	for _, b := range bookings {
+		if b.ListingID != "" {
+			if oid, err := primitive.ObjectIDFromHex(b.ListingID); err == nil {
+				blockedIDs = append(blockedIDs, oid)
+			}
+		}
+	}
+	return blockedIDs, nil
 }
 

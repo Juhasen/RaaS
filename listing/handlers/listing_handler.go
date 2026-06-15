@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"listing/models"
 	"listing/service"
@@ -94,19 +95,42 @@ func (h *ListingHandler) DeleteListing(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// ListListings handles the GET /listings request, delegating to search if parameters match availability criteria.
+// ListListings handles the GET /listings request, supporting full combination of filters.
 func (h *ListingHandler) ListListings(c echo.Context) error {
 	checkin := c.QueryParam("checkin")
+	if checkin == "" {
+		checkin = c.QueryParam("start_date")
+	}
 	checkout := c.QueryParam("checkout")
-	locationID := c.QueryParam("location_id")
+	if checkout == "" {
+		checkout = c.QueryParam("end_date")
+	}
+	location := c.QueryParam("location")
+	if location == "" {
+		location = c.QueryParam("location_id")
+	}
+	name := c.QueryParam("name")
+	if name == "" {
+		name = c.QueryParam("q")
+	}
 	hostID := c.QueryParam("host_id")
 
-	// If query parameters for search are present, delegate to availability handler
-	if checkin != "" || checkout != "" || locationID != "" {
-		return h.availabilityHandler.GetAvailableListings(c)
+	// Validate date range if checkin and checkout are provided
+	if checkin != "" && checkout != "" {
+		checkinTime, err := time.Parse("2006-01-02", checkin)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid checkin date format"})
+		}
+		checkoutTime, err := time.Parse("2006-01-02", checkout)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid checkout date format"})
+		}
+		if !checkinTime.Before(checkoutTime) {
+			return c.JSON(http.StatusBadRequest, echo.Map{"error": "checkin must be before checkout"})
+		}
 	}
 
-	list, err := h.listingService.ListListings(c.Request().Context(), hostID)
+	list, err := h.listingService.ListListings(c.Request().Context(), hostID, checkin, checkout, location, name)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to list listings"})
 	}

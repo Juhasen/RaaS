@@ -104,3 +104,20 @@ func (h *BookingHandler) ListBookings(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, list)
 }
+
+// ListActiveBookings handles the GET /bookings/active request.
+func (h *BookingHandler) ListActiveBookings(c echo.Context) error {
+	startDate := c.QueryParam("start_date")
+	endDate := c.QueryParam("end_date")
+
+	if startDate == "" || endDate == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "start_date and end_date are required"})
+	}
+
+	list, err := h.bookingService.ListActiveBookings(c.Request().Context(), startDate, endDate)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to list active bookings"})
+	}
+
+	return c.JSON(http.StatusOK, list)
+}

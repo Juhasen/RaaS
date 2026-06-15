@@ -140,3 +140,30 @@ func (r *PostgresRepository) ListBookings(ctx context.Context, guestID, listingI
 	}
 	return list, nil
 }
+
+// ListActiveBookings retrieves active bookings overlapping with the given date range.
+func (r *PostgresRepository) ListActiveBookings(ctx context.Context, startDate, endDate string) ([]models.Booking, error) {
+	query := `SELECT id, listing_id, guest_id, start_date, end_date, total_price, status, created_at 
+	          FROM bookings 
+	          WHERE status != 'REJECTED' AND start_date < $1 AND end_date > $2`
+	rows, err := r.pool.Query(ctx, query, endDate, startDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.Booking
+	for rows.Next() {
+		var b models.Booking
+		err = rows.Scan(&b.ID, &b.ListingID, &b.GuestID, &b.StartDate, &b.EndDate, &b.TotalPrice, &b.Status, &b.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, b)
+	}
+
+	if list == nil {
+		list = []models.Booking{}
+	}
+	return list, nil
+}
