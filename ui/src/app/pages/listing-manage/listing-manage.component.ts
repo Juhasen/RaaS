@@ -17,6 +17,7 @@ export class ListingManageComponent implements OnInit {
   listings = signal<Listing[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
+  mockHostId = 'host123';
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -31,11 +32,9 @@ export class ListingManageComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.listingService.getListings().subscribe({
+    this.listingService.getListings(this.mockHostId).subscribe({
       next: (data) => {
-        // Filter listings to show only those belonging to the mocked host (host123)
-        const hostListings = (data || []).filter(item => item.host_id === 'host123');
-        this.listings.set(hostListings);
+        this.listings.set(data || []);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -46,4 +45,5 @@ export class ListingManageComponent implements OnInit {
     });
   }
 }
+
 

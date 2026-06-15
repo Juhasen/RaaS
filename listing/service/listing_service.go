@@ -98,7 +98,12 @@ func (s *ListingService) DeleteListing(ctx context.Context, idStr string) error 
 	return nil
 }
 
-// ListListings retrieves all Listings from the database.
-func (s *ListingService) ListListings(ctx context.Context) ([]models.Listing, error) {
-	return s.repo.ListListings(ctx, bson.M{})
+// ListListings retrieves all or filtered Listings from the database.
+func (s *ListingService) ListListings(ctx context.Context, hostID string) ([]models.Listing, error) {
+	filter := bson.M{}
+	if hostID != "" {
+		filter["host_id"] = hostID
+	}
+	return s.repo.ListListings(ctx, filter)
 }
+
