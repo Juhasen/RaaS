@@ -135,4 +135,19 @@ export class ListingManageComponent implements OnInit {
       }
     });
   }
+
+  deleteListing(listingId: string): void {
+    if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) return;
+    this.isLoading.set(true);
+    this.listingService.deleteListing(listingId).subscribe({
+      next: () => {
+        this.loadAllData();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(`Failed to delete listing: ${err.error?.error || 'Unknown error'}`);
+        console.error(err);
+      }
+    });
+  }
 }

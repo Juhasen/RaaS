@@ -48,7 +48,7 @@ func TestListingHandler_CRUD(t *testing.T) {
 	_ = db.Collection("listings").Drop(ctx)
 
 	repo := repository.NewMongoRepository(client, dbName)
-	ls := service.NewListingService(repo)
+	ls := service.NewListingService(repo, nil)
 	as := service.NewAvailabilityService(repo)
 	availH := handlers.NewAvailabilityHandler(as)
 	h := handlers.NewListingHandler(ls, availH)

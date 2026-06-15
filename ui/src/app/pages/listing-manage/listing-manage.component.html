@@ -80,39 +80,43 @@
     } @else {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @for (listing of listings(); track listing.id) {
-          <a [routerLink]="['/listing', listing.id]" [queryParams]="{ from: 'manage' }" class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer block no-underline text-left">
-            <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
-              @if (listing.media_urls && listing.media_urls.length > 0) {
-                <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">
-              } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
-                </svg>
-              }
-              <span class="absolute top-4 right-4 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-100 uppercase">
-                {{ listing.status || 'AVAILABLE' }}
-              </span>
-            </div>
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-lg font-bold text-zinc-900 truncate mr-2">{{ listing.title }}</h3>
-                <span class="text-lg font-extrabold text-indigo-600 shrink-0">
-                  ${{ listing.price_per_day }}<span class="text-xs font-normal text-zinc-500">/day</span>
-                </span>
-              </div>
-              <p class="text-sm text-zinc-500 line-clamp-2 mb-4">{{ listing.description }}</p>
-              <div class="flex items-center justify-between pt-4 border-t border-zinc-100 text-xs text-zinc-500">
-                <span class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          <div class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+            <a [routerLink]="['/listing', listing.id]" [queryParams]="{ from: 'manage' }" class="block no-underline text-zinc-900 flex-1">
+              <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
+                @if (listing.media_urls && listing.media_urls.length > 0) {
+                  <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
                   </svg>
-                  {{ listing.location_label }}
+                }
+                <span class="absolute top-4 right-4 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-100 uppercase">
+                  {{ listing.status || 'AVAILABLE' }}
                 </span>
-                <span>ID: {{ listing.location_id }}</span>
               </div>
+              <div class="p-6 pb-2">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-lg font-bold text-zinc-900 truncate mr-2">{{ listing.title }}</h3>
+                  <span class="text-lg font-extrabold text-indigo-600 shrink-0">
+                    ${{ listing.price_per_day }}<span class="text-xs font-normal text-zinc-500">/day</span>
+                  </span>
+                </div>
+                <p class="text-sm text-zinc-500 line-clamp-2 mb-4">{{ listing.description }}</p>
+              </div>
+            </a>
+            <div class="px-6 pb-6 pt-4 border-t border-zinc-50 flex items-center justify-between mt-auto">
+              <div class="flex items-center gap-1 text-xs text-zinc-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                <span class="truncate max-w-[120px]">{{ listing.location_label }}</span>
+              </div>
+              <button (click)="deleteListing(listing.id!)" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                Delete
+              </button>
             </div>
-          </a>
+          </div>
         }
       </div>
     }

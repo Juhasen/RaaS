@@ -44,7 +44,7 @@ func TestAvailabilityService_BookingFlow(t *testing.T) {
 	_ = db.Collection("cancellation_tombstones").Drop(ctx)
 
 	repo := repository.NewMongoRepository(client, dbName)
-	listingService := service.NewListingService(repo)
+	listingService := service.NewListingService(repo, nil)
 	availService := service.NewAvailabilityService(repo)
 
 	// Create test listing
