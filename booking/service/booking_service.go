@@ -116,6 +116,11 @@ func (s *BookingService) UpdateBooking(ctx context.Context, id string, updated *
 
 	// Preserve immutable properties
 	updated.ID = existing.ID
+	updated.ListingID = existing.ListingID
+	updated.GuestID = existing.GuestID
+	updated.StartDate = existing.StartDate
+	updated.EndDate = existing.EndDate
+	updated.TotalPrice = existing.TotalPrice
 	updated.CreatedAt = existing.CreatedAt
 	if updated.Status == "" {
 		updated.Status = existing.Status
