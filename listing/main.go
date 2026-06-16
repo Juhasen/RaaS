@@ -107,9 +107,12 @@ func startKafkaConsumers(brokers []string, availService *service.AvailabilitySer
 		m, err := r.ReadMessage(context.Background())
 		if err != nil {
 			// Backoff on consumer read error
+			log.Printf("Kafka read error: %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
+
+		log.Printf("Kafka message received: %s", string(m.Value))
 
 		var evt struct {
 			Event     string `json:"event"`
@@ -166,6 +169,8 @@ func startKafkaConsumers(brokers []string, availService *service.AvailabilitySer
 					}
 				}(evt.ListingID, evt.BookingID)
 			}
+		} else {
+			log.Printf("Failed to unmarshal Kafka message: %v", err)
 		}
 	}
 }
