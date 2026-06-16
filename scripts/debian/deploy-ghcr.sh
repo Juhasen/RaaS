@@ -35,13 +35,20 @@ else
 fi
 
 echo "Rewriting image registry source, pull policy, and imagePullSecrets in manifests..."
-# Find all deployment YAMLs and replace "image: raas/" with "image: ghcr.io/username/"
-# and "imagePullPolicy: Never" with "imagePullPolicy: Always"
-find k8s/apps/ -type f -name "*.yaml" -exec sed -i "s|image: raas/|image: ghcr.io/${gh_username}/|g" {} +
-find k8s/apps/ -type f -name "*.yaml" -exec sed -i "s|imagePullPolicy: Never|imagePullPolicy: Always|g" {} +
+# Rewrite image paths (raas/ → ghcr.io/<username>/)
+find k8s/apps/ -type f -name "*.yaml" -print0 | \
+xargs -0 sed -i "s|image: raas/|image: ghcr.io/${gh_username}/|g"
 
-# Inject imagePullSecrets block right before containers: if not already injected
-find k8s/apps/ -type f -name "*.yaml" -exec grep -q "regcred" {} \; -o -exec sed -i "s|      containers:|      imagePullSecrets:\n        - name: regcred\n      containers:|g" {} \;
+# Rewrite pull policy
+find k8s/apps/ -type f -name "*.yaml" -print0 | \
+xargs -0 sed -i "s|imagePullPolicy: Never|imagePullPolicy: Always|g"
+
+# Inject imagePullSecrets only if missing
+find k8s/apps/ -type f -name "*.yaml" | while read -r file; do
+    if ! grep -q "regcred" "$file"; then
+        sed -i "s|^\(\s*\)containers:|\1imagePullSecrets:\n\1  - name: regcred\n\1containers:|g" "$file"
+    fi
+done
 
 
 echo "Applying media environment secret..."
