@@ -10,7 +10,7 @@ data:
         server_name localhost;
 
         # Kubernetes cluster DNS resolver (kube-dns)
-        resolver 10.96.0.10 valid=10s;
+        resolver 10.43.0.10 valid=10s;
 
         # Health check for the Gateway
         location /health {
