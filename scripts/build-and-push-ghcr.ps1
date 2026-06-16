@@ -3,6 +3,8 @@ param (
     [string]$GithubUsername
 )
 
+$ErrorActionPreference = 'Stop'
+
 $repoRoot = Resolve-Path "$PSScriptRoot\.."
 Push-Location $repoRoot
 
@@ -40,11 +42,17 @@ foreach ($dir in $services.Keys) {
     Write-Host "---------------------------------------------"
     
     # Build
-    docker build -t $tag ./$dir
+    & docker build -t $tag ./$dir
+    if ($LASTEXITCODE -ne 0) {
+        throw "Docker build failed for $imageName."
+    }
     
     # Push
     Write-Host "Pushing $tag to GHCR..."
-    docker push $tag
+    & docker push $tag
+    if ($LASTEXITCODE -ne 0) {
+        throw "GHCR denied the push for $tag. Confirm you are logged in to ghcr.io with a token that has write:packages permission, and that the package namespace matches the account that owns the image."
+    }
 }
 
 Write-Host ""
