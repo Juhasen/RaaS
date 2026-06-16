@@ -50,7 +50,8 @@ func (s *AvailabilityService) GetAvailableListings(ctx context.Context, criteria
 		filter["price_per_day"] = bson.M{"$lte": *criteria.MaxPrice}
 	}
 
-	listings, err := s.repo.ListListings(ctx, filter)
+	// ponytail: availability check needs all matching listings, no pagination
+	listings, _, err := s.repo.ListListings(ctx, filter, 1, 10000)
 	if err != nil {
 		return nil, err
 	}

@@ -123,7 +123,7 @@ func (s *ListingService) DeleteListing(ctx context.Context, idStr string) error 
 }
 
 // ListListings retrieves Listings matching the optional filters.
-func (s *ListingService) ListListings(ctx context.Context, hostID, checkinStr, checkoutStr, location, name string) ([]models.Listing, error) {
+func (s *ListingService) ListListings(ctx context.Context, hostID, checkinStr, checkoutStr, location, name string, page, limit int64) ([]models.Listing, int64, error) {
 	var filterParts []bson.M
 
 	if hostID != "" {
@@ -171,7 +171,7 @@ func (s *ListingService) ListListings(ctx context.Context, hostID, checkinStr, c
 		filter = bson.M{}
 	}
 
-	return s.repo.ListListings(ctx, filter)
+	return s.repo.ListListings(ctx, filter, page, limit)
 }
 
 func (s *ListingService) getBlockedListingIDsFromBookingService(ctx context.Context, start, end string) ([]primitive.ObjectID, error) {
@@ -214,4 +214,3 @@ func (s *ListingService) getBlockedListingIDsFromBookingService(ctx context.Cont
 	}
 	return blockedIDs, nil
 }
-

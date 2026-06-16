@@ -19,6 +19,10 @@ export class ListingCatalogComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
+  currentPage = signal<number>(1);
+  totalListings = signal<number>(0);
+  pageSize = 20; // ponytail: bump to configurable if needed later
+
   // Filter signals
   checkinFilter = signal<string>('');
   checkoutFilter = signal<string>('');
@@ -42,7 +46,10 @@ export class ListingCatalogComponent implements OnInit {
     }
     this.errorMessage.set(null);
 
-    const filters: any = {};
+    const filters: any = {
+      page: this.currentPage(),
+      limit: this.pageSize,
+    };
     if (this.checkinFilter() && this.checkoutFilter()) {
       filters.checkin = this.checkinFilter();
       filters.checkout = this.checkoutFilter();
@@ -56,7 +63,8 @@ export class ListingCatalogComponent implements OnInit {
 
     this.listingService.getListings(filters).subscribe({
       next: (data) => {
-        this.listings.set(data || []);
+        this.listings.set(data.data || []);
+        this.totalListings.set(data.total);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -70,12 +78,14 @@ export class ListingCatalogComponent implements OnInit {
   onLocationInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     this.locationFilter.set(val);
+    this.currentPage.set(1);
     this.loadListings();
   }
 
   onNameInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     this.nameFilter.set(val);
+    this.currentPage.set(1);
     this.loadListings();
   }
 
@@ -83,6 +93,7 @@ export class ListingCatalogComponent implements OnInit {
     const val = (event.target as HTMLInputElement).value;
     this.checkinFilter.set(val);
     if (this.checkoutFilter()) {
+      this.currentPage.set(1);
       this.loadListings();
     }
   }
@@ -91,6 +102,7 @@ export class ListingCatalogComponent implements OnInit {
     const val = (event.target as HTMLInputElement).value;
     this.checkoutFilter.set(val);
     if (this.checkinFilter()) {
+      this.currentPage.set(1);
       this.loadListings();
     }
   }
@@ -100,6 +112,17 @@ export class ListingCatalogComponent implements OnInit {
     this.checkoutFilter.set('');
     this.locationFilter.set('');
     this.nameFilter.set('');
+    this.currentPage.set(1);
+    this.loadListings();
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.totalListings() / this.pageSize) || 1;
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    this.currentPage.set(page);
     this.loadListings();
   }
 }

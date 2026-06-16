@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"listing/models"
@@ -115,6 +116,22 @@ func (h *ListingHandler) ListListings(c echo.Context) error {
 	}
 	hostID := c.QueryParam("host_id")
 
+	page := int64(1)
+	if v := c.QueryParam("page"); v != "" {
+		if p, err := strconv.ParseInt(v, 10, 64); err == nil && p > 0 {
+			page = p
+		}
+	}
+	limit := int64(20)
+	if v := c.QueryParam("limit"); v != "" {
+		if l, err := strconv.ParseInt(v, 10, 64); err == nil && l > 0 {
+			limit = l
+		}
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
 	// Validate date range if checkin and checkout are provided
 	if checkin != "" && checkout != "" {
 		checkinTime, err := time.Parse("2006-01-02", checkin)
@@ -130,11 +147,15 @@ func (h *ListingHandler) ListListings(c echo.Context) error {
 		}
 	}
 
-	list, err := h.listingService.ListListings(c.Request().Context(), hostID, checkin, checkout, location, name)
+	list, total, err := h.listingService.ListListings(c.Request().Context(), hostID, checkin, checkout, location, name, page, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to list listings"})
 	}
 
-	return c.JSON(http.StatusOK, list)
+	return c.JSON(http.StatusOK, echo.Map{
+		"data":  list,
+		"total": total,
+		"page":  page,
+		"limit": limit,
+	})
 }
-
