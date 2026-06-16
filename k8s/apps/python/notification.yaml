@@ -37,6 +37,13 @@ spec:
               key: KAFKA_BROKER
         - name: KAFKA_CLIENT_ID
           value: notification-service
+        - name: BOOKING_SERVICE_URL
+          value: "http://booking-service.raas.svc.cluster.local:80"
+        - name: USER_SERVICE_URL
+          value: "http://user-service.raas.svc.cluster.local:80"
+        envFrom:
+        - secretRef:
+            name: notification-env
         resources:
           requests:
             memory: "128Mi"

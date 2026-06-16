@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Listing Microservice API
-  description: API for managing accommodation listings and checking listing availability in RaaS (Rent-a-Space).
+  description: API for managing accommodation listings and checking listing availability in RaaS (Rent as a Service).
   version: 1.0.0
 servers:
   - url: http://localhost:8080
