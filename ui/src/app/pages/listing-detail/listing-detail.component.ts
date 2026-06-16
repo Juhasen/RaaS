@@ -43,6 +43,8 @@ export class ListingDetailComponent implements OnInit {
     return days > 0 ? days * price : 0;
   });
 
+  isAuthenticated = computed(() => this.authService.isAuthenticated());
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       const from = this.route.snapshot.queryParamMap.get('from');
@@ -86,6 +88,11 @@ export class ListingDetailComponent implements OnInit {
   }
 
   requestBooking(): void {
+    if (!this.authService.currentUser()) {
+      this.bookingError.set('Please log in to request a booking.');
+      return;
+    }
+
     const start = this.startDate();
     const end = this.endDate();
     const list = this.listing();
@@ -103,7 +110,13 @@ export class ListingDetailComponent implements OnInit {
     this.bookingError.set(null);
     this.bookingSuccess.set(null);
 
-    const guestId = this.authService.currentUser()?.id || 'guest123';
+    const guestId = this.authService.currentUser()?.id;
+    if (!guestId) {
+      this.bookingSubmitting.set(false);
+      this.bookingError.set('Please log in to request a booking.');
+      return;
+    }
+
     const booking: Booking = {
       listing_id: list.id,
       guest_id: guestId,
