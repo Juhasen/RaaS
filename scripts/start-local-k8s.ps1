@@ -11,6 +11,14 @@ if (Test-Path "media/.env") {
     kubectl create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
 }
 
+Write-Host "Applying notification environment secret..."
+if (Test-Path "notification/.env") {
+    kubectl create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+} else {
+    Write-Warning "notification/.env not found! Creating notification-env secret from notification/.env.example template instead. Please configure it later."
+    kubectl create secret generic notification-env --from-env-file=notification/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+}
+
 Write-Host "Applying infrastructure configmap..."
 kubectl apply -f k8s/infra/configmap.yaml
 

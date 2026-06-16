@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Booking Microservice API
-  description: API for creating and managing bookings in RaaS (Rent-a-Space).
+  description: API for creating and managing bookings in RaaS (Rent as a Service).
   version: 1.0.0
 servers:
   - url: http://localhost:8080

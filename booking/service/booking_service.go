@@ -140,6 +140,32 @@ func (s *BookingService) UpdateBooking(ctx context.Context, id string, updated *
 		}
 		return nil, err
 	}
+
+	// Emit event if status has changed to CONFIRMED or REJECTED
+	if updated.Status != existing.Status {
+		var sagaEvent string
+		if updated.Status == "CONFIRMED" {
+			sagaEvent = "booking.confirmed"
+		} else if updated.Status == "REJECTED" {
+			sagaEvent = "booking.rejected"
+		}
+
+		if sagaEvent != "" && s.kafkaWriter != nil {
+			eventMsg := fmt.Sprintf(`{"event":"%s","booking_id":"%s","listing_id":"%s"}`, sagaEvent, updated.ID, updated.ListingID)
+			errEvt := s.kafkaWriter.WriteMessages(ctx,
+				kafka.Message{
+					Key:   []byte(updated.ID),
+					Value: []byte(eventMsg),
+				},
+			)
+			if errEvt != nil {
+				log.Printf("Failed to emit booking status update event: %v", errEvt)
+			} else {
+				log.Printf("Emitted booking status update event: %s for booking %s", sagaEvent, updated.ID)
+			}
+		}
+	}
+
 	return updated, nil
 }
 
