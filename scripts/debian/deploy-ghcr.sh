@@ -15,6 +15,37 @@ echo ""
 read -p "Enter your GitHub username: " gh_username
 gh_username=$(echo "$gh_username" | tr '[:upper:]' '[:lower:]')
 
+echo ""
+echo "Planned GHCR image pulls:"
+echo "  ghcr.io/${gh_username}/booking-service:latest"
+echo "  ghcr.io/${gh_username}/listing-service:latest"
+echo "  ghcr.io/${gh_username}/media-service:latest"
+echo "  ghcr.io/${gh_username}/favorites-service:latest"
+echo "  ghcr.io/${gh_username}/payment-service:latest"
+echo "  ghcr.io/${gh_username}/review-service:latest"
+echo "  ghcr.io/${gh_username}/analytics-service:latest"
+echo "  ghcr.io/${gh_username}/notification-service:latest"
+echo "  ghcr.io/${gh_username}/user-service:latest"
+echo "  ghcr.io/${gh_username}/ui-service:latest"
+echo "  ghcr.io/${gh_username}/gateway:latest"
+echo ""
+read -p "Continue with these image names? [y/N]: " confirm
+case "$confirm" in
+    [yY]|[yY][eE][sS]) ;;
+    *)
+        echo "Aborted."
+        exit 1
+        ;;
+esac
+
+RENDER_DIR=$(mktemp -d)
+cleanup() {
+    rm -rf "$RENDER_DIR"
+}
+trap cleanup EXIT
+
+cp -R k8s/apps "$RENDER_DIR/"
+
 echo "Applying namespace..."
 kubectl apply -f k8s/infra/namespace.yaml
 
@@ -36,15 +67,15 @@ fi
 
 echo "Rewriting image registry source, pull policy, and imagePullSecrets in manifests..."
 # Rewrite image paths (raas/ → ghcr.io/<username>/)
-find k8s/apps/ -type f -name "*.yaml" -print0 | \
+find "$RENDER_DIR/apps" -type f -name "*.yaml" -print0 | \
 xargs -0 sed -i "s|image: raas/|image: ghcr.io/${gh_username}/|g"
 
 # Rewrite pull policy
-find k8s/apps/ -type f -name "*.yaml" -print0 | \
+find "$RENDER_DIR/apps" -type f -name "*.yaml" -print0 | \
 xargs -0 sed -i "s|imagePullPolicy: Never|imagePullPolicy: Always|g"
 
 # Inject imagePullSecrets only if missing
-find k8s/apps/ -type f -name "*.yaml" | while read -r file; do
+find "$RENDER_DIR/apps" -type f -name "*.yaml" | while read -r file; do
     if ! grep -q "regcred" "$file"; then
         sed -i "s|^\(\s*\)containers:|\1imagePullSecrets:\n\1  - name: regcred\n\1containers:|g" "$file"
     fi
@@ -90,19 +121,19 @@ for db in "${dbs[@]}"; do
 done
 
 echo "Applying Go applications..."
-kubectl apply -f k8s/apps/go/
+kubectl apply -f "$RENDER_DIR/apps/go/"
 
 echo "Applying Java applications..."
-kubectl apply -f k8s/apps/java/
+kubectl apply -f "$RENDER_DIR/apps/java/"
 
 echo "Applying Python applications..."
-kubectl apply -f k8s/apps/python/
+kubectl apply -f "$RENDER_DIR/apps/python/"
 
 echo "Applying UI Deployment..."
-kubectl apply -f k8s/apps/ui/
+kubectl apply -f "$RENDER_DIR/apps/ui/"
 
 echo "Applying Gateway ConfigMap, Deployment, and Ingress..."
-kubectl apply -f k8s/apps/gateway/
+kubectl apply -f "$RENDER_DIR/apps/gateway/"
 
 echo "Waiting for all applications to become ready..."
 kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s
