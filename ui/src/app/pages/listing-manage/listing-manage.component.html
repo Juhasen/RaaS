@@ -21,7 +21,7 @@
   </div>
 
   <!-- Modern Pill-style Tab Navigation -->
-  <div class="flex p-1 bg-zinc-100 rounded-xl mb-6 max-w-md">
+  <div class="flex p-1 bg-zinc-100 rounded-xl mb-6 max-w-lg">
     @if (authService.currentUser()?.role !== 'guest') {
       <button (click)="switchTab('listings')" 
               [class.bg-white]="activeTab() === 'listings'" 
@@ -45,6 +45,13 @@
               [class.shadow-xs]="activeTab() === 'guest-bookings'"
               class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
         Guest Bookings ({{ guestBookings().length }})
+      </button>
+      <button (click)="switchTab('analytics')" 
+              [class.bg-white]="activeTab() === 'analytics'" 
+              [class.text-indigo-600]="activeTab() === 'analytics'" 
+              [class.shadow-xs]="activeTab() === 'analytics'"
+              class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+        Analytics
       </button>
     }
   </div>
@@ -75,7 +82,7 @@
   }
 
   <!-- Tab 1: Listings -->
-  @if (activeTab() === 'listings' && !isLoading()) {
+  @if (activeTab() === 'listings' && !isLoading() && authService.currentUser()?.role !== 'guest') {
     @if (listings().length === 0) {
       <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
@@ -204,7 +211,7 @@
   }
 
   <!-- Tab 3: Guest Bookings (Bookings on My Listings) -->
-  @if (activeTab() === 'guest-bookings' && !isLoading()) {
+  @if (activeTab() === 'guest-bookings' && !isLoading() && authService.currentUser()?.role !== 'guest') {
     @if (guestBookings().length === 0) {
       <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
@@ -261,6 +268,108 @@
             </div>
           </div>
         }
+      </div>
+    }
+  }
+
+  <!-- Tab 4: Analytics Overview -->
+  @if (activeTab() === 'analytics' && !isLoading() && authService.currentUser()?.role !== 'guest') {
+    @let stats = hostAnalytics();
+    @if (!stats || stats.total_listings === 0) {
+      <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.75c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 18.875v-5.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v10.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+        </svg>
+        <h3 class="text-base font-bold text-zinc-900 mb-1">No analytics data available</h3>
+        <p class="text-sm text-zinc-500 mb-6">Create listings and start receiving bookings to see your performance metrics.</p>
+      </div>
+    } @else {
+      <!-- Stat Cards Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <!-- Listings -->
+        <div class="bg-white border border-zinc-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Listings</span>
+          <span class="text-2xl font-extrabold text-zinc-900 mt-2">{{ stats.total_listings }}</span>
+        </div>
+        <!-- Bookings -->
+        <div class="bg-white border border-zinc-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Bookings</span>
+          <span class="text-2xl font-extrabold text-indigo-600 mt-2">{{ stats.total_bookings }}</span>
+        </div>
+        <!-- Pending -->
+        <div class="bg-white border border-zinc-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pending</span>
+          <span class="text-2xl font-extrabold text-amber-600 mt-2">{{ stats.total_pending }}</span>
+        </div>
+        <!-- Confirmed -->
+        <div class="bg-white border border-zinc-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Confirmed</span>
+          <span class="text-2xl font-extrabold text-emerald-600 mt-2">{{ stats.total_confirmed }}</span>
+        </div>
+        <!-- Rejected -->
+        <div class="bg-white border border-zinc-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between col-span-2 md:col-span-1">
+          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Rejected</span>
+          <span class="text-2xl font-extrabold text-rose-600 mt-2">{{ stats.total_rejected }}</span>
+        </div>
+      </div>
+
+      <!-- Listings Metrics Table -->
+      <div class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs">
+        <div class="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+          <h3 class="text-base font-bold text-zinc-900">Performance by Listing</h3>
+          <span class="text-xs font-medium text-zinc-500">Live booking statistics</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-zinc-50 border-b border-zinc-100 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                <th class="py-3.5 px-6">Listing</th>
+                <th class="py-3.5 px-6 text-center">Total Bookings</th>
+                <th class="py-3.5 px-6 text-center">Pending</th>
+                <th class="py-3.5 px-6 text-center">Confirmed</th>
+                <th class="py-3.5 px-6 text-center">Rejected</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100 text-sm text-zinc-700">
+              @for (item of stats.listings; track item.listing_id) {
+                <tr class="hover:bg-zinc-50/50 transition-colors">
+                  <td class="py-4 px-6 font-medium text-zinc-900">
+                    <div class="flex flex-col">
+                      <span class="font-semibold text-zinc-900 truncate max-w-xs">{{ item.title }}</span>
+                      <span class="text-xs font-normal text-zinc-500 mt-0.5">${{ item.price_per_day }}/day</span>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6 text-center font-bold text-zinc-800">{{ item.bookings_count }}</td>
+                  <td class="py-4 px-6 text-center">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold"
+                          [class.bg-amber-50]="item.pending_bookings > 0"
+                          [class.text-amber-700]="item.pending_bookings > 0"
+                          [class.text-zinc-400]="item.pending_bookings === 0">
+                      {{ item.pending_bookings }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-center">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold"
+                          [class.bg-emerald-50]="item.confirmed_bookings > 0"
+                          [class.text-emerald-700]="item.confirmed_bookings > 0"
+                          [class.text-zinc-400]="item.confirmed_bookings === 0">
+                      {{ item.confirmed_bookings }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-center">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold"
+                          [class.bg-rose-50]="item.rejected_bookings > 0"
+                          [class.text-rose-700]="item.rejected_bookings > 0"
+                          [class.text-zinc-400]="item.rejected_bookings === 0">
+                      {{ item.rejected_bookings }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
   }

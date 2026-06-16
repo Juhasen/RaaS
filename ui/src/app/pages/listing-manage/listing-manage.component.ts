@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { ListingService } from '../../services/listing.service';
 import { BookingService } from '../../services/booking.service';
 import { AuthService } from '../../services/auth.service';
+import { AnalyticsService, HostAnalyticsResponse } from '../../services/analytics.service';
 import { Listing } from '../../models/listing.model';
 import { Booking } from '../../models/booking.model';
 
@@ -18,16 +19,27 @@ import { Booking } from '../../models/booking.model';
 export class ListingManageComponent implements OnInit {
   private listingService = inject(ListingService);
   private bookingService = inject(BookingService);
+  private analyticsService = inject(AnalyticsService);
   authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user && user.role === 'guest') {
+        this.activeTab.set('my-bookings');
+      }
+    });
+  }
 
   // Data signals
   listings = signal<Listing[]>([]);
   myBookings = signal<Booking[]>([]);
   guestBookings = signal<Booking[]>([]);
   allListingsMap = signal<Listing[]>([]);
+  hostAnalytics = signal<HostAnalyticsResponse | null>(null);
 
-  activeTab = signal<'listings' | 'my-bookings' | 'guest-bookings'>('listings');
+  activeTab = signal<'listings' | 'my-bookings' | 'guest-bookings' | 'analytics'>('listings');
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
@@ -55,7 +67,6 @@ export class ListingManageComponent implements OnInit {
     this.errorMessage.set(null);
 
     // 1. Fetch all listings to resolve titles/images for bookings
-    // ponytail: high limit to get all listings for cross-referencing bookings
     this.listingService.getListings({ limit: 100 }).subscribe({
       next: (res) => {
         const allListings = res.data || [];
@@ -83,9 +94,19 @@ export class ListingManageComponent implements OnInit {
           })
         );
 
+        // 4. Fetch host analytics if host
+        const isHost = this.authService.currentUser()?.role !== 'guest';
+        const hostAnalyticsObs = isHost ? this.analyticsService.getHostAnalytics(this.hostId).pipe(
+          catchError((err) => {
+            console.error('Error loading host analytics:', err);
+            return of(null);
+          })
+        ) : of(null);
+
         forkJoin({
           myBookings: myBookingsObs,
-          allBookings: allBookingsObs
+          allBookings: allBookingsObs,
+          hostAnalytics: hostAnalyticsObs
         }).subscribe({
           next: (res) => {
             this.myBookings.set(res.myBookings);
@@ -93,6 +114,10 @@ export class ListingManageComponent implements OnInit {
             // Filter all bookings to only those for listings I own
             const guestBookingsFiltered = res.allBookings.filter(b => myOwnedIds.has(b.listing_id));
             this.guestBookings.set(guestBookingsFiltered);
+
+            if (res.hostAnalytics) {
+              this.hostAnalytics.set(res.hostAnalytics);
+            }
             
             this.isLoading.set(false);
           },
@@ -111,7 +136,7 @@ export class ListingManageComponent implements OnInit {
     });
   }
 
-  switchTab(tab: 'listings' | 'my-bookings' | 'guest-bookings'): void {
+  switchTab(tab: 'listings' | 'my-bookings' | 'guest-bookings' | 'analytics'): void {
     this.activeTab.set(tab);
   }
 
