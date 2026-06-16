@@ -278,6 +278,30 @@ export class ListingDetailComponent implements OnInit {
     );
   }
 
+  onDeleteListing(): void {
+    const listingId = this.listing()?.id;
+    if (!listingId) return;
+
+    this.openConfirmation(
+      'Delete Listing',
+      'Are you sure you want to delete this listing? This action cannot be undone and will permanently remove it from the catalog.',
+      'danger',
+      'Delete Listing',
+      () => {
+        this.listingService.deleteListing(listingId).subscribe({
+          next: () => {
+            alert('Listing deleted successfully.');
+            this.router.navigate(['/listing/manage']);
+          },
+          error: (err) => {
+            alert(err.error?.error || 'Failed to delete listing.');
+            console.error(err);
+          }
+        });
+      }
+    );
+  }
+
   openConfirmation(title: string, message: string, type: 'danger' | 'primary' | 'warning', confirmBtnText: string, callback: () => void): void {
     this.confirmTitle.set(title);
     this.confirmMessage.set(message);

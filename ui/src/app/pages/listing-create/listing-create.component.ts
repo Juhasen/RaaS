@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { ListingService } from '../../services/listing.service';
 import { AuthService } from '../../services/auth.service';
@@ -8,15 +8,16 @@ import { Listing } from '../../models/listing.model';
 
 @Component({
   selector: 'app-listing-create',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './listing-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ListingCreateComponent {
+export class ListingCreateComponent implements OnInit {
   private fb = inject(FormBuilder);
   private listingService = inject(ListingService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   listingForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
@@ -32,6 +33,42 @@ export class ListingCreateComponent {
 
   selectedFiles = signal<File[]>([]);
   previewUrls = signal<string[]>([]);
+  isEditMode = signal<boolean>(false);
+  listingId = signal<string | null>(null);
+  existingMediaUrls = signal<string[]>([]);
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode.set(true);
+      this.listingId.set(id);
+      this.loadListing(id);
+    }
+  }
+
+  loadListing(id: string): void {
+    this.isSubmitting.set(true);
+    this.listingService.getListing(id).subscribe({
+      next: (listing) => {
+        this.isSubmitting.set(false);
+        this.listingForm.patchValue({
+          title: listing.title,
+          description: listing.description,
+          price_per_day: listing.price_per_day,
+          location_id: listing.location_id,
+          location_label: listing.location_label
+        });
+        if (listing.media_urls) {
+          this.existingMediaUrls.set(listing.media_urls);
+        }
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set('Failed to load listing details.');
+        console.error(err);
+      }
+    });
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -67,7 +104,7 @@ export class ListingCreateComponent {
     this.successMessage.set(null);
 
     const hostId = this.authService.currentUser()?.id || 'host123';
-    const newListing: Listing = {
+    const listingData: Listing = {
       host_id: hostId,
       title: this.listingForm.value.title,
       description: this.listingForm.value.description,
@@ -76,31 +113,38 @@ export class ListingCreateComponent {
       location_label: this.listingForm.value.location_label
     };
 
-    this.listingService.createListing(newListing).pipe(
-      switchMap((createdListing: Listing) => {
+    const action$ = this.isEditMode()
+      ? this.listingService.updateListing(this.listingId()!, listingData)
+      : this.listingService.createListing(listingData);
+
+    action$.pipe(
+      switchMap((savedListing: Listing) => {
+        const targetId = this.isEditMode() ? this.listingId()! : savedListing.id!;
         const files = this.selectedFiles();
         if (files.length === 0) {
-          return of(createdListing);
+          return of(savedListing);
         }
         const uploadObservables = files.map(file =>
-          this.listingService.uploadPhoto(createdListing.id!, file)
+          this.listingService.uploadPhoto(targetId, file)
         );
         return forkJoin(uploadObservables);
       })
     ).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.successMessage.set('Listing published and photos uploaded successfully!');
-        this.listingForm.reset();
-        this.selectedFiles.set([]);
-        this.previewUrls.set([]);
+        this.successMessage.set(this.isEditMode() ? 'Listing updated successfully!' : 'Listing published and photos uploaded successfully!');
+        if (!this.isEditMode()) {
+          this.listingForm.reset();
+          this.selectedFiles.set([]);
+          this.previewUrls.set([]);
+        }
         setTimeout(() => {
           this.router.navigate(['/listing/manage']);
         }, 1500);
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(err.error?.error || 'Failed to publish listing. Please try again.');
+        this.errorMessage.set(err.error?.error || `Failed to ${this.isEditMode() ? 'update' : 'publish'} listing. Please try again.`);
       }
     });
   }

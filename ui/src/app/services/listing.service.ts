@@ -40,6 +40,10 @@ export class ListingService {
     return this.http.post<Listing>(this.apiUrl, listing);
   }
 
+  updateListing(id: string, listing: Listing): Observable<Listing> {
+    return this.http.put<Listing>(`${this.apiUrl}/${id}`, listing);
+  }
+
   deleteListing(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

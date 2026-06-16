@@ -19,6 +19,7 @@ export const routes: Routes = [
 			{ path: 'listing/create', component: ListingCreateComponent },
 			{ path: 'listing/manage', component: ListingManageComponent },
 			{ path: 'listing/:id', component: ListingDetailComponent },
+			{ path: 'listing/:id/edit', component: ListingCreateComponent },
 			{ path: 'favorites', component: FavoritesComponent },
 			{ path: 'login', component: LoginComponent },
 			{ path: 'register', component: RegisterComponent }
