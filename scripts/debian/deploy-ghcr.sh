@@ -135,6 +135,10 @@ kubectl apply -f "$RENDER_DIR/apps/ui/"
 echo "Applying Gateway ConfigMap, Deployment, and Ingress..."
 kubectl apply -f "$RENDER_DIR/apps/gateway/"
 
+echo "Restarting gateway to load the updated config..."
+kubectl rollout restart deployment/gateway -n raas
+kubectl rollout status deployment/gateway -n raas --timeout=120s
+
 echo "Waiting for all applications to become ready..."
 kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s
 kubectl wait --for=condition=ready pod -l app=media-service -n raas --timeout=120s
