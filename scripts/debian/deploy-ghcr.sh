@@ -11,9 +11,17 @@ echo "   Deploying RaaS from GHCR to local K3s"
 echo "============================================="
 echo ""
 
-# Ask for GitHub username
-read -p "Enter your GitHub username: " gh_username
+# Get GitHub username from the first argument or prompt interactively.
+gh_username="${1:-}"
+if [ -z "$gh_username" ]; then
+    read -p "Enter your GitHub username: " gh_username
+fi
 gh_username=$(echo "$gh_username" | tr '[:upper:]' '[:lower:]')
+
+if [ -z "$gh_username" ]; then
+    echo "GitHub username is required."
+    exit 1
+fi
 
 echo ""
 echo "Planned GHCR image pulls:"
@@ -46,16 +54,34 @@ trap cleanup EXIT
 
 cp -R k8s/apps "$RENDER_DIR/"
 
+if kubectl get namespace >/dev/null 2>&1; then
+    KUBECTL_CMD=(kubectl)
+elif command -v sudo >/dev/null 2>&1; then
+    if sudo -n kubectl get namespace >/dev/null 2>&1; then
+        KUBECTL_CMD=(sudo -n kubectl)
+    else
+        echo "kubectl is not accessible to the current user and passwordless sudo is not available."
+        exit 1
+    fi
+else
+    echo "kubectl is not usable and sudo is not available."
+    exit 1
+fi
+
+kc() {
+    "${KUBECTL_CMD[@]}" "$@"
+}
+
 echo "Applying namespace..."
-kubectl apply -f k8s/infra/namespace.yaml
+kc apply -f k8s/infra/namespace.yaml
 
 # Check if image pull secret exists, if not create it
-if ! kubectl get secret regcred -n raas >/dev/null 2>&1; then
+if ! kc get secret regcred -n raas >/dev/null 2>&1; then
     echo "Image pull secret 'regcred' not found in namespace 'raas'!"
     echo "Since you chose to use private packages, please provide your GitHub Personal Access Token (PAT) to create it."
     read -sp "GitHub Personal Access Token (PAT): " pat_token
     echo ""
-    kubectl create secret docker-registry regcred \
+    kc create secret docker-registry regcred \
       --docker-server=ghcr.io \
       --docker-username="${gh_username}" \
       --docker-password="${pat_token}" \
@@ -84,56 +110,56 @@ done
 
 echo "Applying media environment secret..."
 if [ -f "media/.env" ]; then
-    kubectl create secret generic media-env --from-file=.env=media/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+    kc create secret generic media-env --from-file=.env=media/.env -n raas --dry-run=client -o yaml | kc apply -f -
 else
     echo "Warning: media/.env not found! Creating media-env secret from media/.env.example template instead."
-    kubectl create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+    kc create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kc apply -f -
 fi
 
 echo "Applying notification environment secret..."
 if [ -f "notification/.env" ]; then
-    kubectl create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+    kc create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kc apply -f -
 else
     echo "Warning: notification/.env not found! Creating notification-env secret from notification/.env.example template instead."
-    kubectl create secret generic notification-env --from-env-file=notification/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+    kc create secret generic notification-env --from-env-file=notification/.env.example -n raas --dry-run=client -o yaml | kc apply -f -
 fi
 
 echo "Applying infrastructure configmap..."
-kubectl apply -f k8s/infra/configmap.yaml
+kc apply -f k8s/infra/configmap.yaml
 
 echo "Applying databases and message brokers..."
-kubectl apply -f k8s/infra/postgres.yaml
-kubectl apply -f k8s/infra/mongodb.yaml
-kubectl apply -f k8s/infra/redis.yaml
-kubectl apply -f k8s/infra/kafka.yaml
+kc apply -f k8s/infra/postgres.yaml
+kc apply -f k8s/infra/mongodb.yaml
+kc apply -f k8s/infra/redis.yaml
+kc apply -f k8s/infra/kafka.yaml
 
 echo "Waiting for infrastructure to become ready..."
-kubectl wait --for=condition=ready pod -l app=postgres -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=mongodb -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=redis -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=kafka -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=postgres -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=mongodb -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=redis -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=kafka -n raas --timeout=120s
 
 echo "Initializing Postgres databases for microservices..."
-pgPod=$(kubectl get pods -n raas -l app=postgres -o jsonpath="{.items[0].metadata.name}")
+pgPod=$(kc get pods -n raas -l app=postgres -o jsonpath="{.items[0].metadata.name}")
 dbs=("payment" "review" "favorites" "user_db" "notification" "analytics")
 for db in "${dbs[@]}"; do
-    kubectl exec -n raas "$pgPod" -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>/dev/null || true
+    kc exec -n raas "$pgPod" -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>/dev/null || true
 done
 
 echo "Applying Go applications..."
-kubectl apply -f "$RENDER_DIR/apps/go/"
+kc apply -f "$RENDER_DIR/apps/go/"
 
 echo "Applying Java applications..."
-kubectl apply -f "$RENDER_DIR/apps/java/"
+kc apply -f "$RENDER_DIR/apps/java/"
 
 echo "Applying Python applications..."
-kubectl apply -f "$RENDER_DIR/apps/python/"
+kc apply -f "$RENDER_DIR/apps/python/"
 
 echo "Applying UI Deployment..."
-kubectl apply -f "$RENDER_DIR/apps/ui/"
+kc apply -f "$RENDER_DIR/apps/ui/"
 
 echo "Applying Gateway ConfigMap, Deployment, and Ingress..."
-kubectl apply -f "$RENDER_DIR/apps/gateway/"
+kc apply -f "$RENDER_DIR/apps/gateway/"
 
 echo "Forcing rollout restart so the newest GHCR images are pulled..."
 deployments=(
@@ -150,25 +176,25 @@ deployments=(
     "gateway"
 )
 for deployment in "${deployments[@]}"; do
-    kubectl rollout restart deployment/$deployment -n raas
+    kc rollout restart deployment/$deployment -n raas
 done
 
 for deployment in "${deployments[@]}"; do
-    kubectl rollout status deployment/$deployment -n raas --timeout=120s
+    kc rollout status deployment/$deployment -n raas --timeout=120s
 done
 
 echo "Waiting for all applications to become ready..."
-kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=media-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=booking-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=payment-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=review-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=favorites-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=user-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=notification-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=analytics-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=ui-service -n raas --timeout=120s
-kubectl wait --for=condition=ready pod -l app=gateway -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=media-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=booking-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=payment-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=review-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=favorites-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=user-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=notification-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=analytics-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=ui-service -n raas --timeout=120s
+kc wait --for=condition=ready pod -l app=gateway -n raas --timeout=120s
 
 echo "All services are running!"
 echo "Access the app at: http://<your-vm-public-ip>"
