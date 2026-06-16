@@ -13,10 +13,10 @@ if (Test-Path "media/.env") {
 
 Write-Host "Applying notification environment secret..."
 if (Test-Path "notification/.env") {
-    kubectl create secret generic notification-env --from-file=.env=notification/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+    kubectl create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
 } else {
     Write-Warning "notification/.env not found! Creating notification-env secret from notification/.env.example template instead. Please configure it later."
-    kubectl create secret generic notification-env --from-file=.env=notification/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+    kubectl create secret generic notification-env --from-env-file=notification/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
 }
 
 Write-Host "Applying infrastructure configmap..."
