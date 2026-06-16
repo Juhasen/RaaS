@@ -135,9 +135,27 @@ kubectl apply -f "$RENDER_DIR/apps/ui/"
 echo "Applying Gateway ConfigMap, Deployment, and Ingress..."
 kubectl apply -f "$RENDER_DIR/apps/gateway/"
 
-echo "Restarting gateway to load the updated config..."
-kubectl rollout restart deployment/gateway -n raas
-kubectl rollout status deployment/gateway -n raas --timeout=120s
+echo "Forcing rollout restart so the newest GHCR images are pulled..."
+deployments=(
+    "booking-deployment"
+    "listing-deployment"
+    "media-deployment"
+    "favorites-deployment"
+    "payment-deployment"
+    "review-deployment"
+    "analytics-deployment"
+    "notification-deployment"
+    "user-deployment"
+    "ui-deployment"
+    "gateway"
+)
+for deployment in "${deployments[@]}"; do
+    kubectl rollout restart deployment/$deployment -n raas
+done
+
+for deployment in "${deployments[@]}"; do
+    kubectl rollout status deployment/$deployment -n raas --timeout=120s
+done
 
 echo "Waiting for all applications to become ready..."
 kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s
