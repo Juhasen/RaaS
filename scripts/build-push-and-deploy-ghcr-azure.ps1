@@ -48,7 +48,7 @@ try {
         $RemoteRepoPath = "/home/$VmUser/" + $RemoteRepoPath.Substring(2)
     }
 
-    $remoteCommand = "cd '$RemoteRepoPath' && git pull && bash scripts/debian/deploy-ghcr.sh '$($GithubUsername.ToLower())'"
+    $remoteCommand = "cd '$RemoteRepoPath' && git stash && git pull && bash scripts/debian/deploy-ghcr.sh '$($GithubUsername.ToLower())'"
     $sshArgs = @('-tt', '-p', $SshPort)
     if ($IdentityFile) {
         $sshArgs += @('-i', $IdentityFile)
