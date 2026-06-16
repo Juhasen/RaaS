@@ -18,7 +18,7 @@ import { Booking } from '../../models/booking.model';
 export class ListingManageComponent implements OnInit {
   private listingService = inject(ListingService);
   private bookingService = inject(BookingService);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
   // Data signals
@@ -40,6 +40,9 @@ export class ListingManageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.authService.currentUser()?.role === 'guest') {
+      this.activeTab.set('my-bookings');
+    }
     if (isPlatformBrowser(this.platformId)) {
       this.loadAllData();
     } else {

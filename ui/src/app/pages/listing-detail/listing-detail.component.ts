@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ListingService } from '../../services/listing.service';
 import { BookingService } from '../../services/booking.service';
+import { AuthService } from '../../services/auth.service';
 import { Listing } from '../../models/listing.model';
 import { Booking } from '../../models/booking.model';
 
@@ -17,6 +18,7 @@ export class ListingDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private listingService = inject(ListingService);
   private bookingService = inject(BookingService);
+  private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
   listing = signal<Listing | null>(null);
@@ -101,9 +103,10 @@ export class ListingDetailComponent implements OnInit {
     this.bookingError.set(null);
     this.bookingSuccess.set(null);
 
+    const guestId = this.authService.currentUser()?.id || 'guest123';
     const booking: Booking = {
       listing_id: list.id,
-      guest_id: 'guest123', // ponytail: mock guest_id until proper authentication system is introduced
+      guest_id: guestId,
       start_date: start,
       end_date: end,
       total_price: this.totalPrice()
