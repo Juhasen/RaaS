@@ -39,7 +39,7 @@ export class FavoritesComponent implements OnInit {
       allListings: this.listingService.getListings()
     }).subscribe({
       next: ({ favoriteIds, allListings }) => {
-        const filtered = (allListings || []).filter(listing => 
+        const filtered = (allListings?.data || []).filter(listing => 
           listing.id && favoriteIds.includes(listing.id)
         );
         this.favoriteListings.set(filtered);

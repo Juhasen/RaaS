@@ -166,6 +166,16 @@ data:
         }
 
         # 7. Review Service
+
+        location ~ ^/api/reviews/([a-zA-Z0-9\-]+)$ {
+            set $upstream_review "http://review-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_review/api/reviews/$1$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
         location /api/reviews {
             rewrite ^/api/reviews$ /reviews break;
             proxy_pass http://review-service.raas.svc.cluster.local:80;
@@ -240,28 +250,6 @@ data:
             proxy_set_header X-Forwarded-Prefix /api/favorites;
         }
 
-        location /api/favorites/swagger-ui/ {
-            set $upstream_favorites "http://favorites-service.raas.svc.cluster.local:80";
-            rewrite ^/api/favorites/(.*)$ /$1 break;
-            proxy_pass $upstream_favorites;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header X-Forwarded-Prefix /api/favorites;
-        }
-
-        location /api/favorites/v3/api-docs {
-            set $upstream_favorites "http://favorites-service.raas.svc.cluster.local:80";
-            rewrite ^/api/favorites/(.*)$ /$1 break;
-            proxy_pass $upstream_favorites;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header X-Forwarded-Prefix /api/favorites;
-        }
-
         # 10. UI Service Fallback
         location / {
             proxy_pass http://ui-service.raas.svc.cluster.local:80;
@@ -271,3 +259,4 @@ data:
             proxy_set_header X-Forwarded-Proto $scheme;
         }
     }
+
