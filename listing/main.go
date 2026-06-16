@@ -9,16 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"listing/handlers"
-	"listing/repository"
-	"listing/service"
-
 	"github.com/labstack/echo/v4"
 	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"listing/handlers"
+	"listing/repository"
+	"listing/service"
 )
 
 func main() {
@@ -123,6 +123,7 @@ func startKafkaConsumers(brokers []string, availService *service.AvailabilitySer
 		if err := json.Unmarshal(m.Value, &evt); err == nil {
 			// Handle media.uploaded separately
 			if evt.Event == "media.uploaded" && evt.ListingID != "" {
+				log.Printf("Received media.uploaded event for listing %s with url %s", evt.ListingID, evt.URL)
 				objID, errID := primitive.ObjectIDFromHex(evt.ListingID)
 				if errID == nil {
 					collection := repo.GetListingsCollection()
@@ -138,8 +139,14 @@ func startKafkaConsumers(brokers []string, availService *service.AvailabilitySer
 						)
 						if errUpdate != nil {
 							log.Printf("Failed to update media_urls for listing %s: %v", evt.ListingID, errUpdate)
+						} else {
+							log.Printf("Updated media_urls for listing %s with %s", evt.ListingID, mediaURL)
 						}
+					} else {
+						log.Printf("Skipping media.uploaded event for listing %s because url is empty", evt.ListingID)
 					}
+				} else {
+					log.Printf("Skipping media.uploaded event because listing_id %q is not a valid ObjectID: %v", evt.ListingID, errID)
 				}
 			}
 
