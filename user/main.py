@@ -2,14 +2,17 @@ import os
 import logging
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from contextlib import asynccontextmanager
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import bcrypt
 import uuid
+import jwt
+from datetime import datetime, timedelta
 
 from models import User, Base
-from schemas import UserCreateRequest, UserResponse, UserListResponse
+from schemas import UserCreateRequest, UserLoginRequest, UserResponse, UserListResponse, TokenResponse
 from db_utils import get_postgres
 from kafka_client import KafkaProducerWrapper
 
@@ -23,7 +26,7 @@ kafka_producer = KafkaProducerWrapper()
 
 # Create tables on startup
 try:
-    postgres.engine.create_all(Base.metadata)
+    Base.metadata.create_all(postgres.engine)
     logger.info("Database tables created successfully")
 except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
@@ -37,6 +40,40 @@ def get_db():
         yield session
     finally:
         session.close()
+
+JWT_SECRET = os.getenv("JWT_SECRET", "raas-secret-key-12345")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+
+security = HTTPBearer()
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token claims")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
 # Health check endpoint
 @app.get("/health")
@@ -100,6 +137,55 @@ async def create_user(
         db.rollback()
         logger.error(f"Error creating user: {e}")
         raise HTTPException(status_code=500, detail="Failed to create user")
+
+# User Registration Endpoint (Alias)
+@app.post("/users/register", response_model=UserResponse, status_code=201)
+async def register_user(
+    request: UserCreateRequest,
+    db: Session = Depends(get_db)
+):
+    """Register a new user"""
+    return await create_user(request, db)
+
+# User Login Endpoint
+@app.post("/users/login", response_model=TokenResponse)
+async def login_user(
+    request: UserLoginRequest,
+    db: Session = Depends(get_db)
+):
+    """Authenticate user and return access token"""
+    try:
+        user = db.query(User).filter(User.email == request.email).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Verify password
+        is_password_correct = bcrypt.checkpw(
+            request.password.encode('utf-8'),
+            user.password_hash.encode('utf-8')
+        )
+        if not is_password_correct:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Create token
+        access_token = create_access_token(
+            data={"sub": user.id, "email": user.email, "role": user.role}
+        )
+        
+        logger.info(f"User logged in successfully: {user.id}")
+        return TokenResponse(access_token=access_token, user=user)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during login")
+
+# Get Current User Info
+@app.get("/users/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Get info of the currently logged-in user"""
+    return current_user
 
 # Get User by ID Endpoint
 @app.get("/users/{user_id}", response_model=UserResponse)

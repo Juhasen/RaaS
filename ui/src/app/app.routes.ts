@@ -4,6 +4,8 @@ import { ListingCatalogComponent } from './pages/listing-catalog/listing-catalog
 import { ListingCreateComponent } from './pages/listing-create/listing-create.component';
 import { ListingManageComponent } from './pages/listing-manage/listing-manage.component';
 import { ListingDetailComponent } from './pages/listing-detail/listing-detail.component';
+import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
@@ -15,7 +17,9 @@ export const routes: Routes = [
 			{ path: 'listing', redirectTo: '', pathMatch: 'full' },
 			{ path: 'listing/create', component: ListingCreateComponent },
 			{ path: 'listing/manage', component: ListingManageComponent },
-			{ path: 'listing/:id', component: ListingDetailComponent }
+			{ path: 'listing/:id', component: ListingDetailComponent },
+			{ path: 'login', component: LoginComponent },
+			{ path: 'register', component: RegisterComponent }
 		]
 	},
 	{ path: '**', component: NotFoundComponent }

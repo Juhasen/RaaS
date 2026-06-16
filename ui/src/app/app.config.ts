@@ -5,15 +5,18 @@ import { provideHttpClient, withInterceptors, HttpInterceptorFn } from '@angular
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
-// jwtInterceptor appends a mock JWT authorization token to all outgoing requests.
+// jwtInterceptor appends the stored JWT authorization token to all outgoing requests.
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const mockJwt = 'mock-jwt-token-value-here';
-  const authReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${mockJwt}`
-    }
-  });
-  return next(authReq);
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  if (token) {
+    const authReq = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return next(authReq);
+  }
+  return next(req);
 };
 
 export const appConfig: ApplicationConfig = {
