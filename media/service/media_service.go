@@ -12,14 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Juhasen/RaaS/media/models"
-	"github.com/Juhasen/RaaS/media/repository"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
+
+	"github.com/Juhasen/RaaS/media/models"
+	"github.com/Juhasen/RaaS/media/repository"
 )
 
 // LoadEnv reads a local .env file and populates environment variables.
@@ -40,7 +41,6 @@ func LoadEnv(filePath string) error {
 	if info.IsDir() {
 		return nil // If it's a directory (e.g. empty mounted folder in k8s), ignore it
 	}
-
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -126,6 +126,8 @@ func NewMediaService(repo repository.MediaRepository, cfg *Config, kafkaBrokers 
 
 // UploadMedia checks the file MIME type, uploads to Cloudflare R2 or local disk, saves metadata, and posts a Kafka event.
 func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *multipart.FileHeader) (*models.Media, error) {
+	log.Printf("Starting media upload for listing %s: filename=%s content_type=%s size=%d", listingID, file.Filename, file.Header.Get("Content-Type"), file.Size)
+
 	contentType := file.Header.Get("Content-Type")
 	allowedMimeTypes := map[string]bool{
 		"image/jpeg": true,
@@ -135,6 +137,7 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 		"image/webp": true,
 	}
 	if !allowedMimeTypes[strings.ToLower(contentType)] {
+		log.Printf("Rejected media upload for listing %s due to invalid content type %s", listingID, contentType)
 		return nil, fmt.Errorf("invalid file type %s: only images are allowed", contentType)
 	}
 
@@ -153,10 +156,12 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 		}
 	}
 	key := fmt.Sprintf("%s/%s%s", listingID, id, ext)
+	log.Printf("Prepared media storage key for listing %s: %s", listingID, key)
 
 	var fileURL string
 
 	if s.s3Client != nil {
+		log.Printf("Uploading media for listing %s to Cloudflare R2 bucket %s", listingID, s.bucketName)
 		_, err = s.s3Client.PutObject(ctx, &s3.PutObjectInput{
 			Bucket:      aws.String(s.bucketName),
 			Key:         aws.String(key),
@@ -164,6 +169,7 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 			ContentType: aws.String(contentType),
 		})
 		if err != nil {
+			log.Printf("Failed to upload media object for listing %s to Cloudflare R2: %v", listingID, err)
 			return nil, fmt.Errorf("failed to upload object to Cloudflare R2: %w", err)
 		}
 
@@ -172,24 +178,30 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 		} else {
 			fileURL = fmt.Sprintf("https://%s.r2.cloudflarestorage.com/%s/%s", os.Getenv("R2_ACCOUNT_ID"), s.bucketName, key)
 		}
+		log.Printf("Stored media for listing %s in R2 with url %s", listingID, fileURL)
 	} else {
+		log.Printf("Uploading media for listing %s to local storage under %s", listingID, s.localStorage)
 		destPath := filepath.Join(s.localStorage, listingID)
 		if err := os.MkdirAll(destPath, 0755); err != nil {
+			log.Printf("Failed to create local media directory for listing %s: %v", listingID, err)
 			return nil, fmt.Errorf("failed to create local directory: %w", err)
 		}
 
 		filePath := filepath.Join(destPath, id+ext)
 		destFile, err := os.Create(filePath)
 		if err != nil {
+			log.Printf("Failed to create local media file for listing %s: %v", listingID, err)
 			return nil, fmt.Errorf("failed to create local file: %w", err)
 		}
 		defer destFile.Close()
 
 		if _, err := io.Copy(destFile, src); err != nil {
+			log.Printf("Failed to write local media file for listing %s: %v", listingID, err)
 			return nil, fmt.Errorf("failed to copy local file: %w", err)
 		}
 
 		fileURL = fmt.Sprintf("http://localhost:8080/uploads/%s", key)
+		log.Printf("Stored media for listing %s locally at %s", listingID, fileURL)
 	}
 
 	media := &models.Media{
@@ -201,11 +213,14 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 	}
 
 	if err := s.repo.Save(ctx, media); err != nil {
+		log.Printf("Failed to save media metadata for listing %s (media_id=%s): %v", listingID, media.ID, err)
 		return nil, fmt.Errorf("failed to save media metadata: %w", err)
 	}
+	log.Printf("Saved media metadata for listing %s with media_id=%s", listingID, media.ID)
 
 	if s.kafkaWriter != nil {
 		eventMsg := fmt.Sprintf(`{"event":"media.uploaded","media_id":"%s","listing_id":"%s","url":"%s","type":"%s"}`, media.ID, media.ListingID, media.URL, media.Type)
+		log.Printf("Publishing media.uploaded event for listing %s with media_id=%s", listingID, media.ID)
 		err := s.kafkaWriter.WriteMessages(ctx,
 			kafka.Message{
 				Key:   []byte(media.ID),
@@ -214,7 +229,11 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 		)
 		if err != nil {
 			log.Printf("Failed to emit Kafka media.uploaded event: %v", err)
+		} else {
+			log.Printf("Published media.uploaded event for listing %s with media_id=%s", listingID, media.ID)
 		}
+	} else {
+		log.Printf("Kafka writer is disabled; media.uploaded event not published for listing %s with media_id=%s", listingID, media.ID)
 	}
 
 	return media, nil
