@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ListingService } from '../../services/listing.service';
 import { BookingService } from '../../services/booking.service';
 import { AuthService } from '../../services/auth.service';
 import { AnalyticsService, HostAnalyticsResponse } from '../../services/analytics.service';
+import { FavoritesService } from '../../services/favorites.service';
 import { Listing } from '../../models/listing.model';
 import { Booking } from '../../models/booking.model';
 
@@ -20,8 +21,10 @@ export class ListingManageComponent implements OnInit {
   private listingService = inject(ListingService);
   private bookingService = inject(BookingService);
   private analyticsService = inject(AnalyticsService);
+  private favoritesService = inject(FavoritesService);
   authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
 
   constructor() {
     effect(() => {
@@ -38,8 +41,9 @@ export class ListingManageComponent implements OnInit {
   guestBookings = signal<Booking[]>([]);
   allListingsMap = signal<Listing[]>([]);
   hostAnalytics = signal<HostAnalyticsResponse | null>(null);
+  favoriteListings = signal<Listing[]>([]);
 
-  activeTab = signal<'listings' | 'my-bookings' | 'guest-bookings' | 'analytics'>('listings');
+  activeTab = signal<'listings' | 'my-bookings' | 'guest-bookings' | 'analytics' | 'observed'>('listings');
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
@@ -52,12 +56,22 @@ export class ListingManageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.authService.currentUser()?.role === 'guest') {
-      this.activeTab.set('my-bookings');
-    }
     if (isPlatformBrowser(this.platformId)) {
+      this.route.queryParams.subscribe(params => {
+        const tab = params['tab'];
+        if (tab && ['listings', 'my-bookings', 'guest-bookings', 'analytics', 'observed'].includes(tab)) {
+          this.activeTab.set(tab as any);
+        } else if (this.authService.currentUser()?.role === 'guest') {
+          this.activeTab.set('my-bookings');
+        } else {
+          this.activeTab.set('listings');
+        }
+      });
       this.loadAllData();
     } else {
+      if (this.authService.currentUser()?.role === 'guest') {
+        this.activeTab.set('my-bookings');
+      }
       this.isLoading.set(false);
     }
   }
@@ -103,10 +117,19 @@ export class ListingManageComponent implements OnInit {
           })
         ) : of(null);
 
+        // 5. Fetch favorites (observed listings)
+        const favoritesObs = this.favoritesService.getFavorites(this.guestId).pipe(
+          catchError((err) => {
+            console.error('Error loading favorites:', err);
+            return of([] as string[]);
+          })
+        );
+
         forkJoin({
           myBookings: myBookingsObs,
           allBookings: allBookingsObs,
-          hostAnalytics: hostAnalyticsObs
+          hostAnalytics: hostAnalyticsObs,
+          favorites: favoritesObs
         }).subscribe({
           next: (res) => {
             this.myBookings.set(res.myBookings);
@@ -118,6 +141,11 @@ export class ListingManageComponent implements OnInit {
             if (res.hostAnalytics) {
               this.hostAnalytics.set(res.hostAnalytics);
             }
+
+            // Resolve favorite listings from the allListings map
+            const favIds = new Set(res.favorites);
+            const favs = allListings.filter(l => l.id && favIds.has(l.id));
+            this.favoriteListings.set(favs);
             
             this.isLoading.set(false);
           },
@@ -136,8 +164,22 @@ export class ListingManageComponent implements OnInit {
     });
   }
 
-  switchTab(tab: 'listings' | 'my-bookings' | 'guest-bookings' | 'analytics'): void {
+  switchTab(tab: 'listings' | 'my-bookings' | 'guest-bookings' | 'analytics' | 'observed'): void {
     this.activeTab.set(tab);
+  }
+
+  toggleFavorite(listingId: string): void {
+    this.isLoading.set(true);
+    this.favoritesService.removeFavorite(this.guestId, listingId).subscribe({
+      next: () => {
+        this.loadAllData();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(`Failed to remove observed listing: ${err.error?.error || 'Unknown error'}`);
+        console.error(err);
+      }
+    });
   }
 
   getListing(listingId: string): Listing | undefined {

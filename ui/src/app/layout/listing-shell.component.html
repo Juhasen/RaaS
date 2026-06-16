@@ -21,7 +21,8 @@
         <span class="text-sm text-zinc-600 font-medium max-w-[150px] truncate" [title]="authService.currentUser()?.email">
           {{ authService.currentUser()?.email }}
         </span>
-        
+
+
         <button (click)="authService.logout()" class="text-sm font-semibold text-zinc-600 hover:text-zinc-950 focus:outline-hidden transition-colors cursor-pointer bg-transparent border-0">
           Logout
         </button>

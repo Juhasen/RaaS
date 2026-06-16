@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID, computed } from '@angular/core';
 import { isPlatformBrowser, CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ListingService } from '../../services/listing.service';
 import { BookingService } from '../../services/booking.service';
 import { ReviewService } from '../../services/review.service';
 import { AuthService } from '../../services/auth.service';
+import { FavoritesService } from '../../services/favorites.service';
 import { Listing } from '../../models/listing.model';
 import { Booking } from '../../models/booking.model';
 import { Review } from '../../models/review.model';
@@ -24,6 +25,8 @@ export class ListingDetailComponent implements OnInit {
   private listingService = inject(ListingService);
   private bookingService = inject(BookingService);
   private reviewService = inject(ReviewService);
+  private favoritesService = inject(FavoritesService);
+  private router = inject(Router);
   private http = inject(HttpClient);
   authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
@@ -33,6 +36,7 @@ export class ListingDetailComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   fromPage = signal<string>('catalog');
   activePhotoIndex = signal<number>(0);
+  isFavorited = signal<boolean>(false);
 
   // Booking signals
   startDate = signal<string>('');
@@ -92,6 +96,7 @@ export class ListingDetailComponent implements OnInit {
       if (id) {
         this.loadListing(id);
         this.loadReviews(id);
+        this.checkIfFavorited(id);
       } else {
         this.isLoading.set(false);
         this.errorMessage.set('Invalid Listing ID.');
@@ -344,6 +349,49 @@ export class ListingDetailComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  checkIfFavorited(listingId: string): void {
+    const userId = this.authService.currentUser()?.id;
+    if (!userId) return;
+
+    this.favoritesService.getFavorites(userId).subscribe({
+      next: (favoriteIds) => {
+        this.isFavorited.set(favoriteIds.includes(listingId));
+      },
+      error: (err) => {
+        console.error('Failed to load user favorites:', err);
+      }
+    });
+  }
+
+  toggleFavorite(): void {
+    const userId = this.authService.currentUser()?.id;
+    const listingId = this.listing()?.id;
+    if (!userId || !listingId) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isFavorited()) {
+      this.favoritesService.removeFavorite(userId, listingId).subscribe({
+        next: () => {
+          this.isFavorited.set(false);
+        },
+        error: (err) => {
+          console.error('Failed to remove from favorites:', err);
+        }
+      });
+    } else {
+      this.favoritesService.addFavorite(userId, listingId).subscribe({
+        next: () => {
+          this.isFavorited.set(true);
+        },
+        error: (err) => {
+          console.error('Failed to add to favorites:', err);
+        }
+      });
+    }
   }
 
   private generateUuid(): string {

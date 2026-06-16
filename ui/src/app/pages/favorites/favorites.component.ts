@@ -3,6 +3,7 @@ import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FavoritesService } from '../../services/favorites.service';
 import { ListingService } from '../../services/listing.service';
+import { AuthService } from '../../services/auth.service';
 import { Listing } from '../../models/listing.model';
 import { forkJoin } from 'rxjs';
 
@@ -15,9 +16,9 @@ import { forkJoin } from 'rxjs';
 export class FavoritesComponent implements OnInit {
   private favoritesService = inject(FavoritesService);
   private listingService = inject(ListingService);
+  authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
-  mockUserId = 'mock-user-123';
   favoriteListings = signal<Listing[]>([]);
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
@@ -31,11 +32,18 @@ export class FavoritesComponent implements OnInit {
   }
 
   loadFavorites(): void {
+    const userId = this.authService.currentUser()?.id;
+    if (!userId) {
+      this.isLoading.set(false);
+      this.errorMessage.set('Please log in to view observed listings.');
+      return;
+    }
+
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
     forkJoin({
-      favoriteIds: this.favoritesService.getFavorites(this.mockUserId),
+      favoriteIds: this.favoritesService.getFavorites(userId),
       allListings: this.listingService.getListings()
     }).subscribe({
       next: ({ favoriteIds, allListings }) => {
@@ -55,8 +63,10 @@ export class FavoritesComponent implements OnInit {
 
   toggleFavorite(listingId: string | undefined): void {
     if (!listingId) return;
+    const userId = this.authService.currentUser()?.id;
+    if (!userId) return;
 
-    this.favoritesService.removeFavorite(this.mockUserId, listingId).subscribe({
+    this.favoritesService.removeFavorite(userId, listingId).subscribe({
       next: () => {
         // Filter out from the current view
         this.favoriteListings.update(listings => 
