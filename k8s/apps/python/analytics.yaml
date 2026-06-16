@@ -37,6 +37,10 @@ spec:
               key: KAFKA_BROKER
         - name: KAFKA_CLIENT_ID
           value: analytics-service
+        - name: LISTING_SERVICE_URL
+          value: "http://listing-service.raas.svc.cluster.local:80"
+        - name: BOOKING_SERVICE_URL
+          value: "http://booking-service.raas.svc.cluster.local:80"
         resources:
           requests:
             memory: "128Mi"

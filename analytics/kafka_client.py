@@ -98,7 +98,12 @@ class KafkaConsumerWrapper:
             for message in self.consumer:
                 try:
                     # Process message
-                    result = callback(message.value)
+                    import inspect
+                    sig = inspect.signature(callback)
+                    if len(sig.parameters) >= 2:
+                        result = callback(message.value, message.topic)
+                    else:
+                        result = callback(message.value)
                     logger.info(f"Message processed: {result}")
                 except Exception as e:
                     logger.error(f"Error processing message: {e}")
