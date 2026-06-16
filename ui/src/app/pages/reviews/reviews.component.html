@@ -1,0 +1,167 @@
+<section class="max-w-4xl mx-auto py-4">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Resource Reviews</h2>
+      <p class="text-sm text-zinc-500 mt-1">Submit feedback on your rentals or read experiences from other clients.</p>
+    </div>
+    <span class="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full font-semibold flex items-center gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-amber-500">
+        <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
+      </svg>
+      {{ reviews().length }} Reviews
+    </span>
+  </div>
+
+  @if (isLoading()) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+      <div class="md:col-span-1 bg-white border border-zinc-100 rounded-2xl p-6 h-96"></div>
+      <div class="md:col-span-2 space-y-6">
+        <div class="bg-white border border-zinc-100 rounded-2xl p-6 h-32"></div>
+        <div class="bg-white border border-zinc-100 rounded-2xl p-6 h-32"></div>
+      </div>
+    </div>
+  } @else if (errorMessage() && reviews().length === 0) {
+    <div class="p-6 bg-rose-50 border border-rose-100 text-rose-800 rounded-2xl text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 mx-auto text-rose-500 mb-3">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+      </svg>
+      <p class="font-medium text-sm">{{ errorMessage() }}</p>
+      <button (click)="loadData()" class="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors">
+        Retry Load
+      </button>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Review Creation Form -->
+      <div class="md:col-span-1 bg-white border border-zinc-100 rounded-2xl p-6 shadow-xs h-fit">
+        <h3 class="text-base font-bold text-zinc-900 mb-4">Add a Review</h3>
+        
+        <form [formGroup]="reviewForm" (ngSubmit)="onSubmit()" class="space-y-4">
+          
+          <!-- Listing Select -->
+          <div>
+            <label class="block text-xs font-semibold text-zinc-600 uppercase mb-1">Select Listing</label>
+            <select formControlName="listingId" class="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600 transition-colors">
+              <option value="" disabled selected>Choose a listing...</option>
+              @for (listing of listings(); track listing.id) {
+                <option [value]="listing.id">{{ listing.title }}</option>
+              }
+            </select>
+            @if (reviewForm.get('listingId')?.touched && reviewForm.get('listingId')?.invalid) {
+              <p class="text-[11px] text-rose-600 mt-1">Listing selection is required.</p>
+            }
+          </div>
+
+          <!-- Star Rating Picker -->
+          <div>
+            <label class="block text-xs font-semibold text-zinc-600 uppercase mb-1">Rating</label>
+            <div class="flex gap-1.5">
+              @for (star of [1, 2, 3, 4, 5]; track star) {
+                <button type="button" (click)="setRating(star)" class="text-2xl transition-transform hover:scale-115 active:scale-90 cursor-pointer focus:outline-none">
+                  <span [class]="star <= selectedRating() ? 'text-amber-400' : 'text-zinc-200'">★</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Review Comment -->
+          <div>
+            <label class="block text-xs font-semibold text-zinc-600 uppercase mb-1">Comment</label>
+            <textarea formControlName="comment" rows="4" placeholder="Describe your experience with this resource..." class="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm bg-zinc-50 focus:bg-white focus:outline-indigo-600 transition-colors placeholder:text-zinc-400 resize-none"></textarea>
+            @if (reviewForm.get('comment')?.touched && reviewForm.get('comment')?.invalid) {
+              <p class="text-[11px] text-rose-600 mt-1">Comment must be at least 5 characters long.</p>
+            }
+          </div>
+
+          <!-- Developer Details (Collapsible) -->
+          <details class="text-[11px] text-zinc-400 border-t border-zinc-100 pt-2 cursor-pointer">
+            <summary class="font-medium hover:text-zinc-600">Simulated ID Parameters</summary>
+            <div class="mt-2 space-y-2">
+              <div>
+                <label class="block font-semibold">Reviewer ID</label>
+                <input type="text" formControlName="reviewerId" class="w-full px-2 py-1 border border-zinc-200 rounded-md text-[10px] bg-zinc-50 focus:outline-none">
+              </div>
+              <div>
+                <label class="block font-semibold">Booking ID (Generated)</label>
+                <input type="text" formControlName="bookingId" class="w-full px-2 py-1 border border-zinc-200 rounded-md text-[10px] bg-zinc-50 focus:outline-none">
+              </div>
+            </div>
+          </details>
+
+          <!-- Status Alerts inside Form -->
+          @if (successMessage()) {
+            <div class="p-3 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-lg text-xs font-medium">
+              {{ successMessage() }}
+            </div>
+          }
+          @if (errorMessage()) {
+            <div class="p-3 bg-rose-50 border border-rose-100 text-rose-800 rounded-lg text-xs font-medium">
+              {{ errorMessage() }}
+            </div>
+          }
+
+          <!-- Submit Button -->
+          <button type="submit" [disabled]="isSubmitting()" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:bg-zinc-300 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2">
+            @if (isSubmitting()) {
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Submitting...
+            } @else {
+              Submit Feedback
+            }
+          </button>
+        </form>
+      </div>
+
+      <!-- Review Feed -->
+      <div class="md:col-span-2 space-y-4">
+        <h3 class="text-base font-bold text-zinc-900 mb-2">Review Feed</h3>
+        
+        @if (reviews().length === 0) {
+          <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+            </svg>
+            <h4 class="text-base font-bold text-zinc-900 mb-1">No reviews listed yet</h4>
+            <p class="text-sm text-zinc-500">Be the first to leave feedback using the review form.</p>
+          </div>
+        } @else {
+          <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+            @for (review of reviews(); track review.id) {
+              <div class="bg-white border border-zinc-100 rounded-2xl p-5 shadow-xs hover:border-zinc-200 transition-colors">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 class="font-bold text-zinc-900 text-sm md:text-base leading-tight">{{ getListingTitle(review.listingId) }}</h4>
+                    <p class="text-[10px] text-zinc-400 mt-0.5">Listing ID: {{ review.listingId }}</p>
+                  </div>
+                  <div class="flex text-amber-400 text-sm">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <span>{{ star <= review.rating ? '★' : '☆' }}</span>
+                    }
+                  </div>
+                </div>
+                
+                <p class="text-sm text-zinc-600 mt-2 mb-4 italic leading-relaxed">
+                  "{{ review.comment }}"
+                </p>
+                
+                <div class="flex items-center justify-between pt-3 border-t border-zinc-50 text-[10px] text-zinc-400">
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[9px] text-indigo-600 font-bold">
+                      R
+                    </div>
+                    <span>By: <code class="text-zinc-600 font-mono text-[9px]">{{ review.reviewerId }}</code></span>
+                  </div>
+                  @if (review.createdAt) {
+                    <span>{{ review.createdAt | date:'medium' }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</section>

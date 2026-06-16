@@ -43,6 +43,12 @@ public class ReviewController {
         return reviewRepository.findByListingId(listingId);
     }
 
+    @GetMapping
+    public List<Review> getAllReviews() {
+        return reviewRepository.findAll();
+    }
+
+
     private UUID parseUuid(String rawValue, String fieldName) {
         try {
             return UUID.fromString(rawValue);
