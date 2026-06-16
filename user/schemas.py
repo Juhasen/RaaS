@@ -8,6 +8,11 @@ class UserCreateRequest(BaseModel):
     password: str = Field(..., min_length=8)
     role: str = Field(default="guest", pattern="^(guest|host|admin)$")
 
+class UserLoginRequest(BaseModel):
+    """Schema for user login"""
+    email: EmailStr
+    password: str
+
 class UserResponse(BaseModel):
     """Schema for user response"""
     id: str
@@ -17,6 +22,12 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class TokenResponse(BaseModel):
+    """Schema for token response"""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
 
 class UserListResponse(BaseModel):
     """Schema for paginated user list"""

@@ -20,8 +20,36 @@ data:
 
         # API Routing Configuration
 
+        # Internal location to verify authentication against the user service
+        location = /api/auth/verify {
+            internal;
+            set $upstream_user "http://user-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_user/users/me;
+            proxy_pass_request_body off;
+            proxy_set_header Content-Length "";
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_set_header Authorization $http_authorization;
+        }
+
         # 1. Listings Service
         location /api/listings {
+            error_page 418 = @write_listings;
+            recursive_error_pages on;
+
+            if ($request_method != GET) {
+                return 418;
+            }
+
+            set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_listing/listings$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location @write_listings {
+            auth_request /api/auth/verify;
             set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
             proxy_pass $upstream_listing/listings$is_args$args;
             proxy_set_header Host $host;
@@ -31,8 +59,26 @@ data:
         }
 
         location ~ ^/api/listings/([a-zA-Z0-9]+)$ {
+            set $listing_id $1;
+            error_page 418 = @write_listing_id;
+            recursive_error_pages on;
+
+            if ($request_method != GET) {
+                return 418;
+            }
+
             set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
-            proxy_pass $upstream_listing/listings/$1$is_args$args;
+            proxy_pass $upstream_listing/listings/$listing_id$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location @write_listing_id {
+            auth_request /api/auth/verify;
+            set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_listing/listings/$listing_id$is_args$args;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -51,6 +97,7 @@ data:
 
         # 3. Bookings Service
         location /api/bookings {
+            auth_request /api/auth/verify;
             set $upstream_booking "http://booking-service.raas.svc.cluster.local:80";
             proxy_pass $upstream_booking/bookings$is_args$args;
             proxy_set_header Host $host;
@@ -60,6 +107,7 @@ data:
         }
 
         location ~ ^/api/bookings/([a-zA-Z0-9\-]+)$ {
+            auth_request /api/auth/verify;
             set $upstream_booking "http://booking-service.raas.svc.cluster.local:80";
             proxy_pass $upstream_booking/bookings/$1$is_args$args;
             proxy_set_header Host $host;

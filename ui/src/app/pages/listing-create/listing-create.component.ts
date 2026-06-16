@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { ListingService } from '../../services/listing.service';
+import { AuthService } from '../../services/auth.service';
 import { Listing } from '../../models/listing.model';
 
 @Component({
@@ -14,6 +15,7 @@ import { Listing } from '../../models/listing.model';
 export class ListingCreateComponent {
   private fb = inject(FormBuilder);
   private listingService = inject(ListingService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   listingForm: FormGroup = this.fb.group({
@@ -64,8 +66,9 @@ export class ListingCreateComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
+    const hostId = this.authService.currentUser()?.id || 'host123';
     const newListing: Listing = {
-      host_id: 'host123', // Mock host_id
+      host_id: hostId,
       title: this.listingForm.value.title,
       description: this.listingForm.value.description,
       price_per_day: this.listingForm.value.price_per_day,

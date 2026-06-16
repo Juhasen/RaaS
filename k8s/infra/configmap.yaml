@@ -18,6 +18,6 @@ data:
   FAVORITES_DB_URL: "jdbc:postgresql://postgres.raas.svc.cluster.local:5432/favorites"
   
   # Python DB
-  USER_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/user"
+  USER_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/user_db"
   NOTIFICATION_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/notification"
   ANALYTICS_DB_URL: "postgresql://raas_user:raas_password@postgres.raas.svc.cluster.local:5432/analytics"

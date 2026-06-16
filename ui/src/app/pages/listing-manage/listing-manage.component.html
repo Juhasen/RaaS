@@ -1,28 +1,36 @@
 <section class="max-w-4xl mx-auto py-4">
   <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Manage Listings & Bookings</h2>
-      <p class="text-sm text-zinc-500 mt-1">Keep track of your active rental resources and reservations.</p>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">
+        {{ authService.currentUser()?.role === 'guest' ? 'My Bookings' : 'Manage Listings & Bookings' }}
+      </h2>
+      <p class="text-sm text-zinc-500 mt-1">
+        {{ authService.currentUser()?.role === 'guest' ? 'Keep track of your reservations and booking status.' : 'Keep track of your active rental resources and reservations.' }}
+      </p>
     </div>
-    <div class="flex items-center gap-3">
-      <a routerLink="/listing/create" class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm shadow-indigo-100 cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Add Listing
-      </a>
-    </div>
+    @if (authService.currentUser()?.role !== 'guest') {
+      <div class="flex items-center gap-3">
+        <a routerLink="/listing/create" class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm shadow-indigo-100 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Add Listing
+        </a>
+      </div>
+    }
   </div>
 
   <!-- Modern Pill-style Tab Navigation -->
   <div class="flex p-1 bg-zinc-100 rounded-xl mb-6 max-w-md">
-    <button (click)="switchTab('listings')" 
-            [class.bg-white]="activeTab() === 'listings'" 
-            [class.text-indigo-600]="activeTab() === 'listings'" 
-            [class.shadow-xs]="activeTab() === 'listings'"
-            class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
-      My Listings ({{ listings().length }})
-    </button>
+    @if (authService.currentUser()?.role !== 'guest') {
+      <button (click)="switchTab('listings')" 
+              [class.bg-white]="activeTab() === 'listings'" 
+              [class.text-indigo-600]="activeTab() === 'listings'" 
+              [class.shadow-xs]="activeTab() === 'listings'"
+              class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+        My Listings ({{ listings().length }})
+      </button>
+    }
     <button (click)="switchTab('my-bookings')" 
             [class.bg-white]="activeTab() === 'my-bookings'" 
             [class.text-indigo-600]="activeTab() === 'my-bookings'" 
@@ -30,13 +38,15 @@
             class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
       My Bookings ({{ myBookings().length }})
     </button>
-    <button (click)="switchTab('guest-bookings')" 
-            [class.bg-white]="activeTab() === 'guest-bookings'" 
-            [class.text-indigo-600]="activeTab() === 'guest-bookings'" 
-            [class.shadow-xs]="activeTab() === 'guest-bookings'"
-            class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
-      Guest Bookings ({{ guestBookings().length }})
-    </button>
+    @if (authService.currentUser()?.role !== 'guest') {
+      <button (click)="switchTab('guest-bookings')" 
+              [class.bg-white]="activeTab() === 'guest-bookings'" 
+              [class.text-indigo-600]="activeTab() === 'guest-bookings'" 
+              [class.shadow-xs]="activeTab() === 'guest-bookings'"
+              class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+        Guest Bookings ({{ guestBookings().length }})
+      </button>
+    }
   </div>
 
   @if (isLoading()) {

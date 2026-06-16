@@ -5,6 +5,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ListingService } from '../../services/listing.service';
 import { BookingService } from '../../services/booking.service';
+import { AuthService } from '../../services/auth.service';
 import { Listing } from '../../models/listing.model';
 import { Booking } from '../../models/booking.model';
 
@@ -17,6 +18,7 @@ import { Booking } from '../../models/booking.model';
 export class ListingManageComponent implements OnInit {
   private listingService = inject(ListingService);
   private bookingService = inject(BookingService);
+  authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
   // Data signals
@@ -29,10 +31,18 @@ export class ListingManageComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
-  mockHostId = 'host123';
-  mockGuestId = 'guest123';
+  get hostId(): string {
+    return this.authService.currentUser()?.id || 'host123';
+  }
+
+  get guestId(): string {
+    return this.authService.currentUser()?.id || 'guest123';
+  }
 
   ngOnInit(): void {
+    if (this.authService.currentUser()?.role === 'guest') {
+      this.activeTab.set('my-bookings');
+    }
     if (isPlatformBrowser(this.platformId)) {
       this.loadAllData();
     } else {
@@ -52,13 +62,13 @@ export class ListingManageComponent implements OnInit {
         this.allListingsMap.set(allListings);
 
         // Filter listings owned by this host
-        const myOwnedListings = allListings.filter(l => l.host_id === this.mockHostId);
+        const myOwnedListings = allListings.filter(l => l.host_id === this.hostId);
         this.listings.set(myOwnedListings);
 
         const myOwnedIds = new Set(myOwnedListings.map(l => l.id));
 
         // 2. Fetch my bookings (as guest)
-        const myBookingsObs = this.bookingService.getBookings(this.mockGuestId).pipe(
+        const myBookingsObs = this.bookingService.getBookings(this.guestId).pipe(
           catchError((err) => {
             console.error('Error loading my bookings:', err);
             return of([] as Booking[]);

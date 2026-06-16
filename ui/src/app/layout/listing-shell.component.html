@@ -7,10 +7,32 @@
       <span class="text-lg font-semibold tracking-tight text-zinc-900">Rent as a Service</span>
     </a>
     
-    <div>
-      <a routerLink="/listing/manage" class="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-sm font-semibold text-zinc-600 border border-zinc-200 focus:outline-hidden transition-colors duration-150 cursor-pointer" title="Manage Listings">
-        H
-      </a>
+    <div class="flex items-center gap-4">
+      @if (authService.isAuthenticated()) {
+        @if (authService.currentUser()?.role === 'host') {
+          <a routerLink="/listing/create" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors" title="Create Listing">
+            + New Listing
+          </a>
+        }
+        <a routerLink="/listing/manage" class="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-sm font-semibold text-zinc-600 border border-zinc-200 focus:outline-hidden transition-colors duration-150 cursor-pointer" [title]="authService.currentUser()?.role === 'host' ? 'Manage Listings & Bookings' : 'My Bookings'">
+          {{ authService.currentUser()?.role === 'host' ? 'H' : 'B' }}
+        </a>
+        
+        <span class="text-sm text-zinc-600 font-medium max-w-[150px] truncate" [title]="authService.currentUser()?.email">
+          {{ authService.currentUser()?.email }}
+        </span>
+        
+        <button (click)="authService.logout()" class="text-sm font-semibold text-zinc-600 hover:text-zinc-950 focus:outline-hidden transition-colors cursor-pointer bg-transparent border-0">
+          Logout
+        </button>
+      } @else {
+        <a routerLink="/login" class="text-sm font-semibold text-zinc-600 hover:text-zinc-950 focus:outline-hidden transition-colors">
+          Sign In
+        </a>
+        <a routerLink="/register" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-md shadow-indigo-100 transition-all cursor-pointer">
+          Register
+        </a>
+      }
     </div>
 
   </div>
