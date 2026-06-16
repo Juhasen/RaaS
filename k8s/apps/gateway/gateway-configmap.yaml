@@ -33,9 +33,23 @@ data:
 
         # 1. Listings Service
         location /api/listings {
-            limit_except GET {
-                auth_request /api/auth/verify;
+            error_page 418 = @write_listings;
+            recursive_error_pages on;
+
+            if ($request_method != GET) {
+                return 418;
             }
+
+            set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_listing/listings$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location @write_listings {
+            auth_request /api/auth/verify;
             set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
             proxy_pass $upstream_listing/listings$is_args$args;
             proxy_set_header Host $host;
@@ -45,11 +59,26 @@ data:
         }
 
         location ~ ^/api/listings/([a-zA-Z0-9]+)$ {
-            limit_except GET {
-                auth_request /api/auth/verify;
+            set $listing_id $1;
+            error_page 418 = @write_listing_id;
+            recursive_error_pages on;
+
+            if ($request_method != GET) {
+                return 418;
             }
+
             set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
-            proxy_pass $upstream_listing/listings/$1$is_args$args;
+            proxy_pass $upstream_listing/listings/$listing_id$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location @write_listing_id {
+            auth_request /api/auth/verify;
+            set $upstream_listing "http://listing-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_listing/listings/$listing_id$is_args$args;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
