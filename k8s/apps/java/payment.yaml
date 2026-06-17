@@ -37,7 +37,15 @@ spec:
                   name: raas-config
                   key: KAFKA_BROKER
             - name: STRIPE_API_KEY
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: payment-env
+                  key: STRIPE_API_KEY
+            - name: STRIPE_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: payment-env
+                  key: STRIPE_PUBLISHABLE_KEY
 ---
 apiVersion: v1
 kind: Service

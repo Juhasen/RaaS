@@ -41,9 +41,19 @@ export class ListingDetailComponent implements OnInit {
   // Booking signals
   startDate = signal<string>('');
   endDate = signal<string>('');
+  todayStr = signal<string>(this.getTodayString());
   bookingSubmitting = signal<boolean>(false);
   bookingSuccess = signal<string | null>(null);
   bookingError = signal<string | null>(null);
+
+  // Stripe integration signals
+  stripeError = signal<string | null>(null);
+  stripeLoading = signal<boolean>(false);
+  showPaymentModal = signal<boolean>(false);
+  clientSecret = signal<string>('');
+  private stripe: any = null;
+  private cardElement: any = null;
+  private elements: any = null;
 
   // Review signals
   reviews = signal<Review[]>([]);
@@ -86,6 +96,8 @@ export class ListingDetailComponent implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      this.loadStripeScript();
+
       const from = this.route.snapshot.queryParamMap.get('from');
       if (from) {
         this.fromPage.set(from);
@@ -321,6 +333,74 @@ export class ListingDetailComponent implements OnInit {
     this.confirmOpen.set(false);
   }
 
+  private loadStripeScript(): void {
+    this.http.get<{ publicKey: string }>('/api/payments/public-key').subscribe({
+      next: (res) => {
+        const key = res.publicKey;
+        if (!key) {
+          console.warn('Stripe publishable key is empty. Payment functions might be simulated.');
+        }
+        if ((window as any).Stripe) {
+          this.initializeStripe(key);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.type = 'text/javascript';
+        script.async = true;
+        script.onload = () => {
+          this.initializeStripe(key);
+        };
+        script.onerror = () => {
+          console.error('Failed to load Stripe.js');
+        };
+        document.head.appendChild(script);
+      },
+      error: (err) => {
+        console.error('Failed to fetch Stripe publishable key:', err);
+      }
+    });
+  }
+
+  private initializeStripe(key: string): void {
+    if (key) {
+      this.stripe = (window as any).Stripe(key);
+    } else {
+      console.warn('Skipping Stripe initialization due to missing public key.');
+    }
+  }
+
+  private setupStripeElements(clientSecret: string): void {
+    if (clientSecret.startsWith('simulated_secret_')) {
+      return;
+    }
+
+    setTimeout(() => {
+      if (!this.stripe) {
+        this.stripeError.set('Stripe has not loaded yet.');
+        return;
+      }
+      this.elements = this.stripe.elements();
+      this.cardElement = this.elements.create('card', {
+        style: {
+          base: {
+            color: '#18181b',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: '14px',
+            '::placeholder': {
+              color: '#a1a1aa',
+            },
+          },
+          invalid: {
+            color: '#ef4444',
+            iconColor: '#ef4444',
+          },
+        },
+      });
+      this.cardElement.mount('#stripe-card-element');
+    }, 50);
+  }
+
   requestBooking(): void {
     if (!this.authService.currentUser()) {
       this.bookingError.set('Please log in to request a booking.');
@@ -335,8 +415,75 @@ export class ListingDetailComponent implements OnInit {
       return;
     }
 
+    const todayStr = this.todayStr();
+    if (start < todayStr) {
+      this.bookingError.set('Start date cannot be in the past.');
+      return;
+    }
+
     if (new Date(start) >= new Date(end)) {
       this.bookingError.set('End date must be after start date.');
+      return;
+    }
+
+    this.stripeError.set(null);
+    this.stripeLoading.set(true);
+    this.bookingError.set(null);
+    this.bookingSuccess.set(null);
+
+    this.http.post<any>('/api/payments/create-intent', {
+      amount: this.totalPrice()
+    }).subscribe({
+      next: (res) => {
+        this.stripeLoading.set(false);
+        this.clientSecret.set(res.clientSecret);
+        this.showPaymentModal.set(true);
+        this.setupStripeElements(res.clientSecret);
+      },
+      error: (err) => {
+        this.stripeLoading.set(false);
+        this.bookingError.set(err.error?.error || 'Failed to initialize payment. Please try again.');
+        console.error(err);
+      }
+    });
+  }
+
+  confirmPayment(): void {
+    const secret = this.clientSecret();
+    this.stripeLoading.set(true);
+    this.stripeError.set(null);
+
+    if (secret.startsWith('simulated_secret_')) {
+      setTimeout(() => {
+        this.stripeLoading.set(false);
+        this.showPaymentModal.set(false);
+        this.executeBookingCreation();
+      }, 1000);
+      return;
+    }
+
+    this.stripe.confirmCardPayment(secret, {
+      payment_method: {
+        card: this.cardElement
+      }
+    }).then((result: any) => {
+      this.stripeLoading.set(false);
+      if (result.error) {
+        this.stripeError.set(result.error.message);
+      } else {
+        if (result.paymentIntent.status === 'succeeded') {
+          this.showPaymentModal.set(false);
+          this.executeBookingCreation();
+        }
+      }
+    });
+  }
+
+  executeBookingCreation(): void {
+    const start = this.startDate();
+    const end = this.endDate();
+    const list = this.listing();
+    if (!start || !end || !list?.id) {
       return;
     }
 
@@ -363,7 +510,6 @@ export class ListingDetailComponent implements OnInit {
       next: (res) => {
         this.bookingSubmitting.set(false);
         this.bookingSuccess.set(`Booking requested successfully! Booking ID: ${res.id}`);
-        // Reset form
         this.startDate.set('');
         this.endDate.set('');
       },
@@ -424,5 +570,13 @@ export class ListingDetailComponent implements OnInit {
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
+  }
+
+  getTodayString(): string {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 }

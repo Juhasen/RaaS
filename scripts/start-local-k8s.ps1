@@ -11,6 +11,15 @@ if (Test-Path "media/.env") {
     kubectl create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
 }
 
+Write-Host "Applying payment environment secret..."
+if (Test-Path "payment/.env") {
+    kubectl create secret generic payment-env --from-env-file=payment/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+} else {
+    Write-Warning "payment/.env not found! Creating payment-env secret from payment/.env.example template instead. Please configure it later."
+    kubectl create secret generic payment-env --from-env-file=payment/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+}
+
+
 Write-Host "Applying notification environment secret..."
 if (Test-Path "notification/.env") {
     kubectl create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
