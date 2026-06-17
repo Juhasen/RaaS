@@ -29,11 +29,24 @@ export class ListingManageComponent implements OnInit {
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
+      
+      // If there's a token but the user is not loaded yet, wait.
+      // Once user loads or clears, this effect will run again.
+      const tokenExists = typeof window !== 'undefined' && !!localStorage.getItem('access_token');
+      if (tokenExists && !user) {
+        return;
+      }
+
       if (user && user.role === 'guest') {
         this.activeTab.set('my-bookings');
       }
+
+      if (isPlatformBrowser(this.platformId)) {
+        this.loadAllData();
+      }
     });
   }
+
 
   // Data signals
   listings = signal<Listing[]>([]);
@@ -67,7 +80,6 @@ export class ListingManageComponent implements OnInit {
           this.activeTab.set('listings');
         }
       });
-      this.loadAllData();
     } else {
       if (this.authService.currentUser()?.role === 'guest') {
         this.activeTab.set('my-bookings');

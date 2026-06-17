@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID, computed, effect } from '@angular/core';
 import { isPlatformBrowser, CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
@@ -30,6 +30,16 @@ export class ListingDetailComponent implements OnInit {
   private http = inject(HttpClient);
   authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      const listing = this.listing();
+      if (user && listing?.id && isPlatformBrowser(this.platformId)) {
+        this.checkIfFavorited(listing.id);
+      }
+    });
+  }
 
   listing = signal<Listing | null>(null);
   isLoading = signal<boolean>(true);
@@ -108,7 +118,6 @@ export class ListingDetailComponent implements OnInit {
       if (id) {
         this.loadListing(id);
         this.loadReviews(id);
-        this.checkIfFavorited(id);
       } else {
         this.isLoading.set(false);
         this.errorMessage.set('Invalid Listing ID.');

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, signal, inject, PLATFORM_ID, effect } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FavoritesService } from '../../services/favorites.service';
@@ -23,10 +23,21 @@ export class FavoritesComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (isPlatformBrowser(this.platformId)) {
+        const tokenExists = typeof window !== 'undefined' && !!localStorage.getItem('access_token');
+        if (tokenExists && !user) {
+          return;
+        }
+        this.loadFavorites();
+      }
+    });
+  }
+
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.loadFavorites();
-    } else {
+    if (!isPlatformBrowser(this.platformId)) {
       this.isLoading.set(false);
     }
   }
