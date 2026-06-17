@@ -14,6 +14,14 @@ else
     kubectl create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
 fi
 
+echo "Applying payment environment secret..."
+if [ -f "payment/.env" ]; then
+    kubectl create secret generic payment-env --from-env-file=payment/.env -n raas --dry-run=client -o yaml | kubectl apply -f -
+else
+    echo "Warning: payment/.env not found! Creating payment-env secret from payment/.env.example template instead."
+    kubectl create secret generic payment-env --from-env-file=payment/.env.example -n raas --dry-run=client -o yaml | kubectl apply -f -
+fi
+
 echo "Applying notification environment secret..."
 if [ -f "notification/.env" ]; then
     kubectl create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kubectl apply -f -

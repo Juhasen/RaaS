@@ -116,6 +116,15 @@ else
     kc create secret generic media-env --from-file=.env=media/.env.example -n raas --dry-run=client -o yaml | kc apply -f -
 fi
 
+
+echo "Applying payment environment secret..."
+if [ -f "payment/.env" ]; then
+    kc create secret generic payment-env --from-env-file=payment/.env -n raas --dry-run=client -o yaml | kc apply -f -
+else
+    echo "Warning: payment/.env not found! Creating payment-env secret from payment/.env.example template instead."
+    kc create secret generic payment-env --from-env-file=payment/.env.example -n raas --dry-run=client -o yaml | kc apply -f -
+fi
+
 echo "Applying notification environment secret..."
 if [ -f "notification/.env" ]; then
     kc create secret generic notification-env --from-env-file=notification/.env -n raas --dry-run=client -o yaml | kc apply -f -
@@ -123,6 +132,7 @@ else
     echo "Warning: notification/.env not found! Creating notification-env secret from notification/.env.example template instead."
     kc create secret generic notification-env --from-env-file=notification/.env.example -n raas --dry-run=client -o yaml | kc apply -f -
 fi
+
 
 echo "Applying infrastructure configmap..."
 kc apply -f k8s/infra/configmap.yaml
