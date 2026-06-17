@@ -1,5 +1,6 @@
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -30,6 +31,7 @@ spring:
 
 stripe:
   apiKey: ${STRIPE_API_KEY:}
+  publishableKey: ${STRIPE_PUBLISHABLE_KEY:}
 
 app:
   kafka:

@@ -21,7 +21,7 @@
   </div>
 
   <!-- Modern Pill-style Tab Navigation -->
-  <div class="flex p-1 bg-zinc-100 rounded-xl mb-6 max-w-lg">
+  <div class="flex p-1 bg-zinc-100 rounded-xl mb-6 max-w-2xl">
     @if (authService.currentUser()?.role !== 'guest') {
       <button (click)="switchTab('listings')" 
               [class.bg-white]="activeTab() === 'listings'" 
@@ -37,6 +37,13 @@
             [class.shadow-xs]="activeTab() === 'my-bookings'"
             class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
       My Bookings ({{ myBookings().length }})
+    </button>
+    <button (click)="switchTab('observed')" 
+            [class.bg-white]="activeTab() === 'observed'" 
+            [class.text-indigo-600]="activeTab() === 'observed'" 
+            [class.shadow-xs]="activeTab() === 'observed'"
+            class="flex-1 py-2 text-center text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 transition-all cursor-pointer">
+      Observed Listings ({{ favoriteListings().length }})
     </button>
     @if (authService.currentUser()?.role !== 'guest') {
       <button (click)="switchTab('guest-bookings')" 
@@ -129,9 +136,14 @@
                 </svg>
                 <span class="truncate max-w-[120px]">{{ listing.location_label }}</span>
               </div>
-              <button (click)="deleteListing(listing.id!)" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                Delete
-              </button>
+              <div class="flex items-center gap-2">
+                <a [routerLink]="['/listing', listing.id, 'edit']" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer no-underline">
+                  Edit
+                </a>
+                <button (click)="deleteListing(listing.id!)" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         }
@@ -370,6 +382,67 @@
             </tbody>
           </table>
         </div>
+      </div>
+    }
+  }
+
+  <!-- Tab 5: Observed Listings -->
+  @if (activeTab() === 'observed' && !isLoading()) {
+    @if (favoriteListings().length === 0) {
+      <div class="bg-white border border-zinc-100 rounded-2xl p-12 text-center shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+        </svg>
+        <h3 class="text-base font-bold text-zinc-900 mb-1">No observed listings yet</h3>
+        <p class="text-sm text-zinc-500 mb-6">Listings you follow will show up here.</p>
+        <a routerLink="/listing" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-lg transition-colors">
+          Browse Catalog
+        </a>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        @for (listing of favoriteListings(); track listing.id) {
+          <div class="bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+            <a [routerLink]="['/listing', listing.id]" [queryParams]="{ from: 'manage' }" class="block no-underline text-zinc-900 flex-1">
+              <div class="h-48 bg-zinc-50 flex items-center justify-center text-zinc-400 relative">
+                @if (listing.media_urls && listing.media_urls.length > 0) {
+                  <img [src]="listing.media_urls[0]" [alt]="listing.title" class="w-full h-full object-cover">
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5h16.5m-16.5 3h16.5m-16.5 3h16.5M6.75 6.75h.75m-.75 3h.75m3-3h.75m-.75 3h.75m3-3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h18v3c0 .621-.504 1.125-1.125 1.125H4.125C3.504 7.125 3 6.621 3 6v-3z" />
+                  </svg>
+                }
+                <span class="absolute top-4 right-4 bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-100 uppercase">
+                  {{ listing.status || 'AVAILABLE' }}
+                </span>
+              </div>
+              <div class="p-6 pb-2">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-lg font-bold text-zinc-900 truncate mr-2">{{ listing.title }}</h3>
+                  <span class="text-lg font-extrabold text-indigo-600 shrink-0">
+                    ${{ listing.price_per_day }}<span class="text-xs font-normal text-zinc-500">/day</span>
+                  </span>
+                </div>
+                <p class="text-sm text-zinc-500 line-clamp-2 mb-4">{{ listing.description }}</p>
+              </div>
+            </a>
+            <div class="px-6 pb-6 pt-4 border-t border-zinc-50 flex items-center justify-between mt-auto">
+              <div class="flex items-center gap-1 text-xs text-zinc-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                <span class="truncate max-w-[120px]">{{ listing.location_label }}</span>
+              </div>
+              <button (click)="toggleFavorite(listing.id!)" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-3.5 h-3.5">
+                  <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+                </svg>
+                Unfollow
+              </button>
+            </div>
+          </div>
+        }
       </div>
     }
   }

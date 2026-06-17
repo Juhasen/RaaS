@@ -55,6 +55,10 @@ func (s *BookingService) CreateBooking(ctx context.Context, b *models.Booking) e
 	if b.StartDate == "" || b.EndDate == "" {
 		return errors.New("start date and end date are required")
 	}
+	todayStr := time.Now().Format("2006-01-02")
+	if b.StartDate < todayStr {
+		return errors.New("start date cannot be in the past")
+	}
 	if b.StartDate >= b.EndDate {
 		return errors.New("start date must be before end date")
 	}

@@ -134,6 +134,15 @@ data:
         }
 
         # 6. Payment Service
+        location ~ ^/api/payments/([a-zA-Z0-9\-]+)$ {
+            set $upstream_payment "http://payment-service.raas.svc.cluster.local:80";
+            proxy_pass $upstream_payment/payments/$1$is_args$args;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
         location /api/payments {
             rewrite ^/api/payments$ /payments break;
             proxy_pass http://payment-service.raas.svc.cluster.local:80;
@@ -143,9 +152,31 @@ data:
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        location /api/payments/swagger-ui/ {
+            set $upstream_payment "http://payment-service.raas.svc.cluster.local:80";
+            rewrite ^/api/payments/(.*)$ /$1 break;
+            proxy_pass $upstream_payment;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Prefix /api/payments;
+        }
+
+        location /api/payments/v3/api-docs {
+            set $upstream_payment "http://payment-service.raas.svc.cluster.local:80";
+            rewrite ^/api/payments/(.*)$ /$1 break;
+            proxy_pass $upstream_payment;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Prefix /api/payments;
+        }
+
         # 7. Review Service
+
         location /api/reviews {
-            rewrite ^/api/reviews$ /reviews break;
             proxy_pass http://review-service.raas.svc.cluster.local:80;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -153,9 +184,30 @@ data:
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        location /api/reviews/swagger-ui/ {
+            set $upstream_review "http://review-service.raas.svc.cluster.local:80";
+            rewrite ^/api/reviews/(.*)$ /$1 break;
+            proxy_pass $upstream_review;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Prefix /api/reviews;
+        }
+
+        location /api/reviews/v3/api-docs {
+            set $upstream_review "http://review-service.raas.svc.cluster.local:80";
+            rewrite ^/api/reviews/(.*)$ /$1 break;
+            proxy_pass $upstream_review;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Prefix /api/reviews;
+        }
+
         # 8. Favorites Service
         location /api/favorites {
-            rewrite ^/api/favorites$ /favorites break;
             proxy_pass http://favorites-service.raas.svc.cluster.local:80;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -174,6 +226,28 @@ data:
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        location /api/favorites/swagger-ui/ {
+            set $upstream_favorites "http://favorites-service.raas.svc.cluster.local:80";
+            rewrite ^/api/favorites/(.*)$ /$1 break;
+            proxy_pass $upstream_favorites;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Prefix /api/favorites;
+        }
+
+        location /api/favorites/v3/api-docs {
+            set $upstream_favorites "http://favorites-service.raas.svc.cluster.local:80";
+            rewrite ^/api/favorites/(.*)$ /$1 break;
+            proxy_pass $upstream_favorites;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Prefix /api/favorites;
+        }
+
         # 10. UI Service Fallback
         location / {
             proxy_pass http://ui-service.raas.svc.cluster.local:80;
@@ -183,3 +257,4 @@ data:
             proxy_set_header X-Forwarded-Proto $scheme;
         }
     }
+

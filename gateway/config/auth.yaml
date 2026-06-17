@@ -1,5 +1,0 @@
-jwt:
-  issuer: https://auth.example.com/
-  audience: raas-gateway
-  jwks_uri: https://auth.example.com/.well-known/jwks.json
-  leeway_seconds: 60

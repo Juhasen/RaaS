@@ -59,11 +59,14 @@ func TestBookingService_Flow(t *testing.T) {
 	bookingService := service.NewBookingService(repo, nil, nil)
 
 	// Test booking creation
+	today := time.Now()
+	startDateStr := today.AddDate(0, 0, 3).Format("2006-01-02")
+	endDateStr := today.AddDate(0, 0, 8).Format("2006-01-02")
 	b := &models.Booking{
 		ListingID:  "listing-test-1",
 		GuestID:    "guest-test-1",
-		StartDate:  "2026-06-20",
-		EndDate:    "2026-06-25",
+		StartDate:  startDateStr,
+		EndDate:    endDateStr,
 		TotalPrice: 500.0,
 	}
 
@@ -76,12 +79,27 @@ func TestBookingService_Flow(t *testing.T) {
 		t.Errorf("Expected populated ID and PENDING status, got %+v", b)
 	}
 
+	// Test booking with past start date fails
+	pastBooking := &models.Booking{
+		ListingID:  "listing-test-1",
+		GuestID:    "guest-test-1",
+		StartDate:  today.AddDate(0, 0, -2).Format("2006-01-02"),
+		EndDate:    today.AddDate(0, 0, 5).Format("2006-01-02"),
+		TotalPrice: 500.0,
+	}
+	err = bookingService.CreateBooking(ctx, pastBooking)
+	if err == nil {
+		t.Error("Expected error for past start date, got nil")
+	} else if err.Error() != "start date cannot be in the past" {
+		t.Errorf("Expected 'start date cannot be in the past' error, got: %v", err)
+	}
+
 	// Test booking overlap check (same listing, overlapping dates)
 	b2 := &models.Booking{
 		ListingID:  "listing-test-1",
 		GuestID:    "guest-test-2",
-		StartDate:  "2026-06-22",
-		EndDate:    "2026-06-24",
+		StartDate:  today.AddDate(0, 0, 5).Format("2006-01-02"),
+		EndDate:    today.AddDate(0, 0, 7).Format("2006-01-02"),
 		TotalPrice: 200.0,
 	}
 	err = bookingService.CreateBooking(ctx, b2)

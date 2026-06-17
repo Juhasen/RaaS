@@ -43,4 +43,29 @@ public class StripeService {
             return PaymentChargeResult.failure(ex.getMessage());
         }
     }
+
+    public PaymentIntentDetails createPaymentIntent(BigDecimal amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount cannot be null");
+        }
+        if (apiKey == null || apiKey.isBlank()) {
+            return new PaymentIntentDetails("simulated_secret_" + UUID.randomUUID(), "simulated_pi_" + UUID.randomUUID());
+        }
+        Stripe.apiKey = apiKey;
+        long minorUnits = amount.movePointRight(2)
+            .setScale(0, RoundingMode.HALF_UP)
+            .longValueExact();
+
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+            .setAmount(minorUnits)
+            .setCurrency("usd")
+            .build();
+
+        try {
+            PaymentIntent intent = PaymentIntent.create(params);
+            return new PaymentIntentDetails(intent.getClientSecret(), intent.getId());
+        } catch (StripeException ex) {
+            throw new RuntimeException("Stripe error: " + ex.getMessage(), ex);
+        }
+    }
 }

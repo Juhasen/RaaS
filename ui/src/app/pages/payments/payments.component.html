@@ -1,0 +1,112 @@
+<section class="max-w-4xl mx-auto py-4">
+  <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Transaction History</h2>
+      <p class="text-sm text-zinc-500 mt-1">Review payment intents, Stripe charge logs, and billing statuses.</p>
+    </div>
+    
+    <!-- Reload & Metrics -->
+    <div class="flex items-center gap-2">
+      <button (click)="loadTransactions()" class="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+        </svg>
+        Sync
+      </button>
+      <span class="text-xs text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full font-semibold border border-indigo-100/50">
+        {{ transactions().length }} Total Transactions
+      </span>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="bg-white border border-zinc-100 rounded-2xl p-6 space-y-4 animate-pulse">
+      <div class="h-10 bg-zinc-50 rounded-lg"></div>
+      <div class="h-12 bg-zinc-100 rounded-xl"></div>
+      <div class="h-12 bg-zinc-100 rounded-xl"></div>
+      <div class="h-12 bg-zinc-100 rounded-xl"></div>
+    </div>
+  } @else if (errorMessage() && transactions().length === 0) {
+    <div class="p-6 bg-rose-50 border border-rose-100 text-rose-800 rounded-2xl text-center shadow-xs">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 mx-auto text-rose-500 mb-3">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+      </svg>
+      <p class="font-medium text-sm">{{ errorMessage() }}</p>
+      <button (click)="loadTransactions()" class="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors">
+        Retry Load
+      </button>
+    </div>
+  } @else {
+    
+    <!-- Filter Search Bar -->
+    <div class="mb-4 relative">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-zinc-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      </div>
+      <input type="text" [value]="searchQuery()" (input)="onSearch($event)" placeholder="Search by Transaction ID, Booking ID, status (SUCCESS/FAILED)..." class="w-full pl-9 pr-4 py-2 text-sm border border-zinc-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500 transition-colors shadow-2xs">
+    </div>
+
+    <!-- Table Card -->
+    <div class="bg-white border border-zinc-100 rounded-2xl shadow-2xs overflow-hidden">
+      @if (filteredTransactions().length === 0) {
+        <div class="p-12 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-zinc-300 mb-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-5.25-6h16.5a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5H3.75A1.5 1.5 0 012.25 15v-3a1.5 1.5 0 011.5-1.5zm10.5-11.25h.008v.008h-.008V2.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+          <h3 class="text-sm font-bold text-zinc-900 mb-1">No transactions match search</h3>
+          <p class="text-xs text-zinc-500">Try adjusting your query or make a reservation to trigger a payment event.</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-zinc-50/70 border-b border-zinc-100 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                <th class="px-6 py-4">Transaction Details</th>
+                <th class="px-6 py-4">Booking ID</th>
+                <th class="px-6 py-4">Amount</th>
+                <th class="px-6 py-4">Method</th>
+                <th class="px-6 py-4 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-50 text-xs">
+              @for (tx of filteredTransactions(); track tx.id) {
+                <tr class="hover:bg-zinc-50/50 transition-colors">
+                  <td class="px-6 py-4">
+                    <div class="font-bold text-zinc-900 font-mono text-[11px]">{{ tx.id }}</div>
+                    <div class="text-[10px] text-zinc-400 mt-0.5">{{ tx.createdAt | date:'medium' }}</div>
+                  </td>
+                  <td class="px-6 py-4 font-mono text-[10px] text-zinc-600">
+                    {{ tx.bookingId }}
+                  </td>
+                  <td class="px-6 py-4 font-extrabold text-zinc-900 text-sm">
+                    ${{ tx.amount | number:'1.2-2' }}
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase">
+                      {{ tx.paymentMethod }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    @if (tx.status === 'SUCCESS') {
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Success
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100 uppercase">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        Failed
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</section>
