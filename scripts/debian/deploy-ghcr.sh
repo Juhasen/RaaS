@@ -7,16 +7,17 @@ REPO_ROOT="$(dirname "$(dirname "$DIR")")"
 cd "$REPO_ROOT"
 
 # Usage: deploy-ghcr.sh [tag]
-#   tag  image tag to deploy for every service, e.g. sha-abc1234 (default: latest).
-#        CI publishes a complete sha-<short> set for every commit on main.
+#   no tag  deploy the checked-out commit: each service gets the tag CI gave it,
+#           sha-<first 7 chars of the last commit that touched <service>/>.
+#   tag     use this tag for every service instead (e.g. latest).
 # Non-interactive. If the 'regcred' pull secret does not exist yet, set GHCR_PAT
 # to a GitHub token with read:packages so the script can create it.
-TAG="${1:-latest}"
+TAG="${1:-}"
 
 # All images live in the project owner's GHCR namespace.
 gh_username="juhasen"
 
-echo "Deploying ghcr.io/${gh_username}/<service>:${TAG}"
+echo "Deploying ghcr.io/${gh_username}/<service>:${TAG:-<per-service sha tag>}"
 
 if kubectl get namespace >/dev/null 2>&1; then
     KUBECTL_CMD=(kubectl)
@@ -99,8 +100,8 @@ for db in "${dbs[@]}"; do
     kc exec -n raas "$pgPod" -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>/dev/null || true
 done
 
-echo "Applying applications (Kustomize ghcr overlay, tag ${TAG})..."
-# Pin every image to $TAG with a temporary overlay on top of the ghcr overlay.
+echo "Applying applications (Kustomize ghcr overlay)..."
+# Pin every image with a temporary overlay on top of the ghcr overlay.
 RENDER_DIR=$(mktemp -d)
 trap 'rm -rf "$RENDER_DIR"' EXIT
 cp -R k8s "$RENDER_DIR/k8s"
@@ -112,7 +113,7 @@ cp -R k8s "$RENDER_DIR/k8s"
     echo "images:"
     for svc in booking listing media favorites payment review analytics notification user ui gateway; do
         echo "  - name: ghcr.io/${gh_username}/${svc}"
-        echo "    newTag: ${TAG}"
+        echo "    newTag: ${TAG:-sha-$(git log -1 --format=%H -- "$svc" | cut -c1-7)}"
     done
 } > "$RENDER_DIR/kustomization.yaml"
 kc kustomize "$RENDER_DIR" | kc apply -f -
