@@ -36,7 +36,7 @@ Planning docs live in `.planning/`:
 
 Create the folder if missing. `.planning/proposals/` holds unscheduled ideas; if a proposal covers this change, read it first and use it as input.
 
-Read `CLAUDE.md`, `agent.md` and the guideline file it names for the target, plus `GLOSSARY.md` and `docs/adr/` if they exist. Then call the Skill tool with `grilling` to close the open questions with the user, one at a time, before writing.
+Read `CLAUDE.md` and the guideline file it names for the target, plus `GLOSSARY.md` and `docs/adr/` if they exist. Then call the Skill tool with `grilling` to close the open questions with the user, one at a time, before writing.
 
 Write `spec.md` with the `to-spec` template: Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, Further Notes. Do not publish it to the issue tracker; the file in `.planning` is the spec. Follow `to-spec` for test seams: prefer existing seams, as few as possible, and confirm them with the user.
 
