@@ -53,24 +53,8 @@ for db in "${dbs[@]}"; do
     kubectl exec -n raas "$pgPod" -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>/dev/null || true
 done
 
-echo "Applying Go applications..."
-kubectl apply -f k8s/apps/go/
-
-echo "Applying Java applications..."
-kubectl apply -f k8s/apps/java/
-
-echo "Applying Python applications..."
-kubectl apply -f k8s/apps/python/
-
-echo "Applying UI Deployment..."
-kubectl apply -f k8s/apps/ui/
-
-echo "Applying Gateway ConfigMap and Deployment (includes Ingress)..."
-kubectl apply -f k8s/apps/gateway/
-
-echo "Restarting gateway to load the updated config..."
-kubectl rollout restart deployment/gateway -n raas
-kubectl rollout status deployment/gateway -n raas --timeout=120s
+echo "Applying applications (Kustomize local overlay)..."
+kubectl apply -k k8s/overlays/local
 
 echo "Waiting for all applications to become ready..."
 kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s

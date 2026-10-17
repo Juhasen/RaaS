@@ -1,0 +1,5 @@
+# Local cluster: images are built on the host (raas/<dir>:latest), never pulled.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../apps

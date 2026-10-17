@@ -1,0 +1,51 @@
+# Registry deployment: pull images from GHCR. To pin a build, change newTag
+# (or run: kustomize edit set image raas/<dir>=ghcr.io/juhasen/<dir>:sha-<short>).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../apps
+images:
+  - name: raas/booking
+    newName: ghcr.io/juhasen/booking
+    newTag: latest
+  - name: raas/listing
+    newName: ghcr.io/juhasen/listing
+    newTag: latest
+  - name: raas/media
+    newName: ghcr.io/juhasen/media
+    newTag: latest
+  - name: raas/favorites
+    newName: ghcr.io/juhasen/favorites
+    newTag: latest
+  - name: raas/payment
+    newName: ghcr.io/juhasen/payment
+    newTag: latest
+  - name: raas/review
+    newName: ghcr.io/juhasen/review
+    newTag: latest
+  - name: raas/analytics
+    newName: ghcr.io/juhasen/analytics
+    newTag: latest
+  - name: raas/notification
+    newName: ghcr.io/juhasen/notification
+    newTag: latest
+  - name: raas/user
+    newName: ghcr.io/juhasen/user
+    newTag: latest
+  - name: raas/ui
+    newName: ghcr.io/juhasen/ui
+    newTag: latest
+  - name: raas/gateway
+    newName: ghcr.io/juhasen/gateway
+    newTag: latest
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+      - op: add
+        path: /spec/template/spec/imagePullSecrets
+        value:
+          - name: regcred
