@@ -52,7 +52,6 @@ Thumbs.db
 .vscode/
 
 # Docker
-.dockerignore
 
 # Java
 target/

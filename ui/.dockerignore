@@ -1,0 +1,10 @@
+.git
+.idea
+.vscode
+.env
+.env.*
+*.md
+Dockerfile
+node_modules/
+dist/
+.angular/
