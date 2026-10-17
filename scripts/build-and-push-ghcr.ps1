@@ -1,27 +1,22 @@
-param (
-    [Parameter(Mandatory=$true)]
-    [string]$GithubUsername
-)
-
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Resolve-Path "$PSScriptRoot\.."
 Push-Location $repoRoot
 
-# GHCR requires lowercase usernames
-$username = $GithubUsername.ToLower()
+# All images are pushed to the project owner's GHCR namespace (lowercase).
+$username = "juhasen"
 
 $services = [ordered]@{
-    "booking"      = "booking-service"
-    "listing"      = "listing-service"
-    "media"        = "media-service"
-    "favorites"    = "favorites-service"
-    "payment"      = "payment-service"
-    "review"       = "review-service"
-    "analytics"    = "analytics-service"
-    "notification" = "notification-service"
-    "user"         = "user-service"
-    "ui"           = "ui-service"
+    "booking"      = "booking"
+    "listing"      = "listing"
+    "media"        = "media"
+    "favorites"    = "favorites"
+    "payment"      = "payment"
+    "review"       = "review"
+    "analytics"    = "analytics"
+    "notification" = "notification"
+    "user"         = "user"
+    "ui"           = "ui"
     "gateway"      = "gateway"
 }
 

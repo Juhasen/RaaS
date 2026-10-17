@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ui-service
-          image: raas/ui-service:latest
+          image: raas/ui:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 4000

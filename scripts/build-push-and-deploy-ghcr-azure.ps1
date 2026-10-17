@@ -1,6 +1,4 @@
 param (
-    [string]$GithubUsername = "juhasen",
-
     [Parameter(Mandatory = $true)]
     [string]$VmHost,
 
@@ -23,10 +21,9 @@ try {
     Write-Host "============================================="
     Write-Host "   Building & Pushing RaaS Images to GHCR    "
     Write-Host "============================================="
-    Write-Host "Target username: $($GithubUsername.ToLower())"
     Write-Host ""
 
-    & "$repoRoot\scripts\build-and-push-ghcr.ps1" -GithubUsername $GithubUsername
+    & "$repoRoot\scripts\build-and-push-ghcr.ps1"
 
     Write-Host ""
     Write-Host "============================================="
@@ -48,7 +45,7 @@ try {
         $RemoteRepoPath = "/home/$VmUser/" + $RemoteRepoPath.Substring(2)
     }
 
-    $remoteCommand = "cd '$RemoteRepoPath' && git stash && git pull && bash scripts/debian/deploy-ghcr.sh '$($GithubUsername.ToLower())'"
+    $remoteCommand = "cd '$RemoteRepoPath' && git stash && git pull && bash scripts/debian/deploy-ghcr.sh"
     $sshArgs = @('-tt', '-p', $SshPort)
     if ($IdentityFile) {
         $sshArgs += @('-i', $IdentityFile)

@@ -11,30 +11,21 @@ echo "   Deploying RaaS from GHCR to local K3s"
 echo "============================================="
 echo ""
 
-# Get GitHub username from the first argument or prompt interactively.
-gh_username="${1:-}"
-if [ -z "$gh_username" ]; then
-    read -p "Enter your GitHub username: " gh_username
-fi
-gh_username=$(echo "$gh_username" | tr '[:upper:]' '[:lower:]')
-
-if [ -z "$gh_username" ]; then
-    echo "GitHub username is required."
-    exit 1
-fi
+# All images live in the project owner's GHCR namespace.
+gh_username="juhasen"
 
 echo ""
 echo "Planned GHCR image pulls:"
-echo "  ghcr.io/${gh_username}/booking-service:latest"
-echo "  ghcr.io/${gh_username}/listing-service:latest"
-echo "  ghcr.io/${gh_username}/media-service:latest"
-echo "  ghcr.io/${gh_username}/favorites-service:latest"
-echo "  ghcr.io/${gh_username}/payment-service:latest"
-echo "  ghcr.io/${gh_username}/review-service:latest"
-echo "  ghcr.io/${gh_username}/analytics-service:latest"
-echo "  ghcr.io/${gh_username}/notification-service:latest"
-echo "  ghcr.io/${gh_username}/user-service:latest"
-echo "  ghcr.io/${gh_username}/ui-service:latest"
+echo "  ghcr.io/${gh_username}/booking:latest"
+echo "  ghcr.io/${gh_username}/listing:latest"
+echo "  ghcr.io/${gh_username}/media:latest"
+echo "  ghcr.io/${gh_username}/favorites:latest"
+echo "  ghcr.io/${gh_username}/payment:latest"
+echo "  ghcr.io/${gh_username}/review:latest"
+echo "  ghcr.io/${gh_username}/analytics:latest"
+echo "  ghcr.io/${gh_username}/notification:latest"
+echo "  ghcr.io/${gh_username}/user:latest"
+echo "  ghcr.io/${gh_username}/ui:latest"
 echo "  ghcr.io/${gh_username}/gateway:latest"
 echo ""
 read -p "Continue with these image names? [y/N]: " confirm

@@ -5,7 +5,7 @@ This service is containerized and deployed to the local Kubernetes environment.
 ## Rebuilding the Image
 To rebuild the Docker image from the repository root:
 ```bash
-docker build -t raas/listing-service:latest ./listing
+docker build -t raas/listing:latest ./listing
 ```
 
 ## Reapplying the Rollout

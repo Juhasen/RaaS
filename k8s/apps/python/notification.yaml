@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: raas/notification-service:latest
+        image: raas/notification:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 8003

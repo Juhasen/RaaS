@@ -5,7 +5,7 @@ This service is containerized and deployed to the local Kubernetes environment.
 ## Rebuilding the Image
 To rebuild the Docker image from the repository root:
 ```bash
-docker build -t raas/analytics-service:latest ./analytics
+docker build -t raas/analytics:latest ./analytics
 ```
 
 ## Reapplying the Rollout

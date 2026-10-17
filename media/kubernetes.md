@@ -11,7 +11,7 @@ kubectl create secret generic media-env --from-file=.env=media/.env -n raas
 ## Rebuilding the Image
 To rebuild the Docker image from the repository root:
 ```bash
-docker build -t raas/media-service:latest ./media
+docker build -t raas/media:latest ./media
 ```
 
 ## Reapplying the Rollout

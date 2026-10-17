@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: raas/user-service:latest
+        image: raas/user:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 8002

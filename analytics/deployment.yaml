@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: analytics-service
-        image: raas/analytics-service:latest
+        image: raas/analytics:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 8008
