@@ -21,8 +21,7 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Use Go modules for dependency management
 - Leverage the Go standard library instead of reinventing the wheel (e.g., use `strings.Builder` for string concatenation, `filepath.Join` for path construction)
 - Prefer standard library solutions over custom implementations when functionality exists
-- Write comments in English by default; translate only upon user request
-- Avoid using emoji in code and comments
+- Write comments and docs in English unless asked otherwise; no emoji in code, comments or docs
 
 ## Naming Conventions
 
@@ -34,20 +33,9 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Avoid generic names like `util`, `common`, or `base`
 - Package names should be singular, not plural
 
-#### Package Declaration Rules (CRITICAL):
-- **NEVER duplicate `package` declarations** - each Go file must have exactly ONE `package` line
-- When editing an existing `.go` file:
-  - **PRESERVE** the existing `package` declaration - do not add another one
-  - If you need to replace the entire file content, start with the existing package name
-- When creating a new `.go` file:
-  - **BEFORE writing any code**, check what package name other `.go` files in the same directory use
-  - Use the SAME package name as existing files in that directory
-  - If it's a new directory, use the directory name as the package name
-  - Write **exactly one** `package <name>` line at the very top of the file
-- When using file creation or replacement tools:
-  - **ALWAYS verify** the target file doesn't already have a `package` declaration before adding one
-  - If replacing file content, include only ONE `package` declaration in the new content
-  - **NEVER** create files with multiple `package` lines or duplicate declarations
+#### Package declarations
+
+Each `.go` file has exactly one `package` line (a duplicate is a compile error). When creating a file, reuse the package name of the other files in its directory (new directory: the directory name). When replacing a file's content, keep its existing `package` line.
 
 ### Variables and Functions
 
@@ -84,14 +72,12 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 
 - Strive for self-documenting code; prefer clear variable names, function names, and code structure over comments
 - Write comments only when necessary to explain complex logic, business rules, or non-obvious behavior
-- Write comments in complete sentences in English by default
-- Translate comments to other languages only upon specific user request
+- Write comments in complete sentences
 - Start sentences with the name of the thing being described
 - Package comments should start with "Package [name]"
 - Use line comments (`//`) for most comments
 - Use block comments (`/* */`) sparingly, mainly for package documentation
 - Document why, not what, unless the what is complex
-- Avoid emoji in comments and code
 
 ### Error Handling
 
@@ -174,15 +160,13 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Use `sync.RWMutex` when you have many readers
 - Choose between channels and mutexes based on the use case: use channels for communication, mutexes for protecting state
 - Use `sync.Once` for one-time initialization
-- WaitGroup usage by Go version:
-	- If `go >= 1.25` in `go.mod`, use the new `WaitGroup.Go` method ([documentation](https://pkg.go.dev/sync#WaitGroup)):
+- The services are on Go 1.25: use `sync.WaitGroup.Go` instead of `Add`/`Done` ([documentation](https://pkg.go.dev/sync#WaitGroup)):
 		```go
 		var wg sync.WaitGroup
 		wg.Go(task1)
 		wg.Go(task2)
 		wg.Wait()
 		```
-	- If `go < 1.25`, use the classic `Add`/`Done` pattern
 
 ## Error Handling Patterns
 
@@ -210,9 +194,7 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Use middleware for cross-cutting concerns
 - Set appropriate status codes and headers
 - Handle errors gracefully and return appropriate error responses
-- Router usage by Go version:
-	- If `go >= 1.22`, prefer the enhanced `net/http` `ServeMux` with pattern-based routing and method matching
-	- If `go < 1.22`, use the classic `ServeMux` and handle methods/paths manually (or use a third-party router when justified)
+- Use the `net/http` `ServeMux` with pattern-based routing and method matching
 
 ### JSON APIs
 
@@ -325,11 +307,9 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Prioritize self-documenting code through clear naming and structure
 - Document all exported symbols with clear, concise explanations
 - Start documentation with the symbol name
-- Write documentation in English by default
 - Use examples in documentation when helpful
 - Keep documentation close to code
 - Update documentation when code changes
-- Avoid emoji in documentation and comments
 
 ### README and Documentation Files
 
@@ -370,4 +350,3 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Using global variables unnecessarily
 - Over-using unconstrained types (e.g., `any`); prefer specific types or generic type parameters with constraints. If an unconstrained type is required, use `any` rather than `interface{}`
 - Not considering the zero value of types
-- **Creating duplicate `package` declarations** - this is a compile error; always check existing files before adding package declarations

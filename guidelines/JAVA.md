@@ -1,3 +1,5 @@
-Need to determine JAVA version.
+# Java Development Instructions
 
-https://github.com/github/awesome-copilot/blob/main/docs/README.instructions.md
+Applies to `payment`, `review`, `favorites`: Java 21, Spring Boot 3.3.x (see each `pom.xml`).
+
+<!-- TODO(owner): add the team's Java style rules here (naming, layering, testing). Left empty rather than guessed. -->
