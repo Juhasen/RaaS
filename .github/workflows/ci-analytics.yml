@@ -1,0 +1,26 @@
+name: CI analytics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analytics/**"
+      - ".github/workflows/ci-analytics.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "analytics/**"
+      - ".github/workflows/ci-analytics.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: analytics
+      stack: python

@@ -1,0 +1,26 @@
+name: CI booking
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "booking/**"
+      - ".github/workflows/ci-booking.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "booking/**"
+      - ".github/workflows/ci-booking.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: booking
+      stack: go

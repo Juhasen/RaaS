@@ -1,0 +1,26 @@
+name: CI user
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "user/**"
+      - ".github/workflows/ci-user.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "user/**"
+      - ".github/workflows/ci-user.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: user
+      stack: python
