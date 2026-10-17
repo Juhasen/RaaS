@@ -51,23 +51,8 @@ foreach ($db in $dbs) {
     kubectl exec -n raas $pgPod -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>$null
 }
 
-Write-Host "Applying Go applications..."
-kubectl apply -f k8s/apps/go/
-
-Write-Host "Applying Java applications..."
-kubectl apply -f k8s/apps/java/
-
-# Python Services
-Write-Host "Applying Python applications..."
-kubectl apply -f k8s/apps/python/
-
-# UI
-Write-Host "Applying UI Deployment..."
-kubectl apply -f k8s/apps/ui/
-
-# Gateway
-Write-Host "Applying Gateway ConfigMap and Deployment..."
-kubectl apply -f k8s/apps/gateway/
+Write-Host "Applying applications (Kustomize local overlay)..."
+kubectl apply -k k8s/overlays/local
 
 Write-Host "Waiting for all applications to become ready..."
 kubectl wait --for=condition=ready pod -l app=listing-service -n raas --timeout=120s

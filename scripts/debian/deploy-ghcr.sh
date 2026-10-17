@@ -37,14 +37,6 @@ case "$confirm" in
         ;;
 esac
 
-RENDER_DIR=$(mktemp -d)
-cleanup() {
-    rm -rf "$RENDER_DIR"
-}
-trap cleanup EXIT
-
-cp -R k8s/apps "$RENDER_DIR/"
-
 if kubectl get namespace >/dev/null 2>&1; then
     KUBECTL_CMD=(kubectl)
 elif command -v sudo >/dev/null 2>&1; then
@@ -81,23 +73,6 @@ if ! kc get secret regcred -n raas >/dev/null 2>&1; then
 else
     echo "Using existing 'regcred' image pull secret."
 fi
-
-echo "Rewriting image registry source, pull policy, and imagePullSecrets in manifests..."
-# Rewrite image paths (raas/ → ghcr.io/<username>/)
-find "$RENDER_DIR/apps" -type f -name "*.yaml" -print0 | \
-xargs -0 sed -i "s|image: raas/|image: ghcr.io/${gh_username}/|g"
-
-# Rewrite pull policy
-find "$RENDER_DIR/apps" -type f -name "*.yaml" -print0 | \
-xargs -0 sed -i "s|imagePullPolicy: Never|imagePullPolicy: Always|g"
-
-# Inject imagePullSecrets only if missing
-find "$RENDER_DIR/apps" -type f -name "*.yaml" | while read -r file; do
-    if ! grep -q "regcred" "$file"; then
-        sed -i "s|^\(\s*\)containers:|\1imagePullSecrets:\n\1  - name: regcred\n\1containers:|g" "$file"
-    fi
-done
-
 
 echo "Applying media environment secret..."
 if [ -f "media/.env" ]; then
@@ -147,20 +122,8 @@ for db in "${dbs[@]}"; do
     kc exec -n raas "$pgPod" -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>/dev/null || true
 done
 
-echo "Applying Go applications..."
-kc apply -f "$RENDER_DIR/apps/go/"
-
-echo "Applying Java applications..."
-kc apply -f "$RENDER_DIR/apps/java/"
-
-echo "Applying Python applications..."
-kc apply -f "$RENDER_DIR/apps/python/"
-
-echo "Applying UI Deployment..."
-kc apply -f "$RENDER_DIR/apps/ui/"
-
-echo "Applying Gateway ConfigMap, Deployment, and Ingress..."
-kc apply -f "$RENDER_DIR/apps/gateway/"
+echo "Applying applications (Kustomize ghcr overlay)..."
+kc apply -k k8s/overlays/ghcr
 
 echo "Forcing rollout restart so the newest GHCR images are pulled..."
 deployments=(

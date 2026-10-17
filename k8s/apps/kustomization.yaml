@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - go/booking.yaml
+  - go/listing.yaml
+  - go/media.yaml
+  - java/favorites.yaml
+  - java/payment.yaml
+  - java/review.yaml
+  - python/analytics.yaml
+  - python/notification.yaml
+  - python/user.yaml
+  - ui/ui.yaml
+  - gateway/gateway-configmap.yaml
+  - gateway/gateway.yaml
+  - gateway/ingress.yaml
