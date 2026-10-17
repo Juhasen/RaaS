@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      unchanged: ${{ steps.matrix.outputs.unchanged }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,14 +31,18 @@ jobs:
             changed="$(git diff --name-only "$BEFORE" "${{ github.sha }}")"
           fi
           items=()
+          kept=()
           for pair in $all; do
             dir="${pair%%:*}"; image="${pair##*:}"
             if [ -z "$changed" ] || echo "$changed" | grep -q "^$dir/"; then
               items+=("{\"dir\":\"$dir\",\"image\":\"$image\"}")
+            else
+              kept+=("{\"dir\":\"$dir\",\"image\":\"$image\"}")
             fi
           done
           matrix="[$(IFS=,; echo "${items[*]}")]"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "unchanged=[$(IFS=,; echo "${kept[*]}")]" >> "$GITHUB_OUTPUT"
 
   build:
     needs: changes
@@ -70,3 +75,28 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.service.dir }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service.dir }}
+
+  # Unchanged services get the same sha-<short> tag as the changed ones, so any
+  # commit's sha tag names a complete, deployable set of images.
+  retag:
+    needs: changes
+    if: needs.changes.outputs.unchanged != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.changes.outputs.unchanged) }}
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.service.image }}
+        run: |
+          owner="$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          ref="ghcr.io/$owner/$IMAGE"
+          docker buildx imagetools create -t "$ref:sha-${GITHUB_SHA::7}" "$ref:latest"
