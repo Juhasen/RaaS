@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: listing-service
-          image: raas/listing-service:latest
+          image: raas/listing:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080

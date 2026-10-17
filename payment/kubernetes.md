@@ -5,7 +5,7 @@ This service is containerized and deployed to the local Kubernetes environment.
 ## Rebuilding the Image
 To rebuild the Docker image from the repository root:
 ```bash
-docker build -t raas/payment-service:latest ./payment
+docker build -t raas/payment:latest ./payment
 ```
 
 ## Reapplying the Rollout

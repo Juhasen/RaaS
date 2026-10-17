@@ -5,7 +5,7 @@ This service is containerized and deployed to the local Kubernetes environment.
 ## Rebuilding the Image
 To rebuild the Docker image from the repository root:
 ```bash
-docker build -t raas/booking-service:latest ./booking
+docker build -t raas/booking:latest ./booking
 ```
 
 ## Reapplying the Rollout

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: favorites-service
-          image: raas/favorites-service:latest
+          image: raas/favorites:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080

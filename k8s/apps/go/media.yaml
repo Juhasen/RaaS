@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: media-service
-          image: raas/media-service:latest
+          image: raas/media:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
