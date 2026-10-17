@@ -11,7 +11,7 @@ Microservices on a local Kubernetes cluster (namespace `raas`). Read the guideli
 
 ## Workflow
 
-Use the `deliver-change` skill for features, fixes and infrastructure work. Specs live in `.planning/`.
+Use the `deliver-change` skill for features, fixes and infrastructure work. Specs live in `.changes/`.
 
 ## Agent skills
 

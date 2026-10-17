@@ -1,6 +1,6 @@
 ---
 name: deliver-change
-description: Deliver a change to RaaS end to end in an isolated git worktree - write a spec under .planning, get it attacked by an adversarial review, build it test-first, redeploy locally, then open a PR after the user approves. Covers service features, bug fixes and infrastructure work (cluster additions such as monitoring or storage). Use whenever the user asks to build, add, change or ship something in this repo, even if they do not say "deliver".
+description: Deliver a change to RaaS end to end in an isolated git worktree - write a spec under .changes, get it attacked by an adversarial review, build it test-first, redeploy locally, then open a PR after the user approves. Covers service features, bug fixes and infrastructure work (cluster additions such as monitoring or storage). Use whenever the user asks to build, add, change or ship something in this repo, even if they do not say "deliver".
 argument-hint: <issue-url|issue-number|description> [service-name|infrastructure]
 disable-model-invocation: true
 ---
@@ -38,16 +38,18 @@ Do all remaining work inside that worktree. If the branch or folder already exis
 
 ## 2. Spec
 
-Planning docs live in `.planning/`:
+Planning docs live in `.changes/`:
 
-- `.planning/services/<service>/<name>/spec.md` for a service
-- `.planning/infrastructure/<name>/spec.md` for cluster work
+- `.changes/services/<service>/<name>/spec.md` for a service
+- `.changes/infrastructure/<name>/spec.md` for cluster work
 
-Create the folder if missing. `.planning/proposals/` holds unscheduled ideas; if a proposal covers this change, read it first and use it as input.
+Create the folder if missing. `.changes/proposals/` holds unscheduled ideas; if a proposal covers this change, read it first and use it as input.
 
 Read the issue body and comments if there is an issue. Read `CLAUDE.md` and the guideline file it names for the target, plus `GLOSSARY.md` and `docs/adr/` if they exist. Then call the Skill tool with `grilling` to close the open questions with the user, one at a time, before writing.
 
-Write `spec.md` with the `to-spec` template: Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, Further Notes. Do not publish it to the issue tracker; the file in `.planning` is the spec. Follow `to-spec` for test seams: prefer existing seams, as few as possible, and confirm them with the user.
+Write `spec.md` with the `to-spec` template: Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, Further Notes. Do not publish it to the issue tracker; the file in `.changes` is the spec. Follow `to-spec` for test seams: prefer existing seams, as few as possible, and confirm them with the user.
+
+Testing Decisions must also say which levels of verification this change needs: unit/integration tests, a check on the local deployment, and any manual test only a human can do (a UI flow, a Grafana dashboard looking right). Step 6 reports against that list.
 
 For infrastructure the "user" is whoever runs or observes the cluster. Stories read "As an operator, I want ..., so that ...". Testing Decisions name the check that proves it works (pods Ready, a metric scraped, a bucket reachable), not a unit test.
 
@@ -84,17 +86,36 @@ The script builds `raas/<service>:latest` and restarts its deployment (`<service
 
 - **Infrastructure:** `kubectl apply -R -f <path>`, then `kubectl -n raas get pods` and `kubectl -n raas rollout status` for each new workload. Run the spec's check and report what you saw.
 
-## 6. Review and approval
+## 6. Validation report
 
-Call the Skill tool with `code-review` on the branch and fix what it raises. Then summarize what changed, the test and rollout results, and any spec deviations, and wait for the user to approve. Do not push or open a PR without approval.
+Write `validation.md` next to `spec.md`. Keep it short; its job is to say what was actually checked, so nobody has to guess. Fill it from real command output, not from memory:
 
-## 7. Push and PR
+```md
+# Validation: <name>
+
+| Level | What was run | Result |
+|---|---|---|
+| Unit / integration | `go test ./...` | pass, 42 tests |
+| Deployment | redeploy, `kubectl -n raas get pods`, curl of the new endpoint | pods Ready, 200 OK |
+| Manual | what the user must try, or what you tried in the browser | done / pending the user |
+
+## Not verified
+Anything in the spec's Testing Decisions that was skipped or could not be run, with the reason.
+```
+
+Mark a level `n/a` with a reason when the change does not need it (an infra change has no unit tests). Never write `pass` for something you did not run. Manual checks you cannot do yourself stay `pending the user`, and you tell the user exactly what to click or run.
+
+## 7. Review and approval
+
+Call the Skill tool with `code-review` on the branch and fix what it raises. Then summarize what changed, point to `validation.md`, and any spec deviations, and wait for the user to approve. Do not push or open a PR without approval.
+
+## 8. Push and PR
 
 After approval:
 
 1. `git status`, check for files that should not be committed, commit anything left.
 2. `git push -u origin HEAD`.
-3. Write the PR body with the Skill tool `pr`, linking the spec path. If the work came from an issue, add `Closes #<n>`. Open it:
+3. Write the PR body with the Skill tool `pr`, linking the spec and `validation.md` paths and summarizing the validation table. If the work came from an issue, add `Closes #<n>`. Open it:
 
 ```sh
 gh pr create --title "<prefix>: <name>" --body "<description>" --base main --head "<prefix>/<name>" --assignee @me
