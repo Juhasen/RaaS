@@ -1,19 +1,28 @@
 ---
 name: deliver-change
 description: Deliver a change to RaaS end to end in an isolated git worktree - write a spec under .planning, get it attacked by an adversarial review, build it test-first, redeploy locally, then open a PR after the user approves. Covers service features, bug fixes and infrastructure work (cluster additions such as monitoring or storage). Use whenever the user asks to build, add, change or ship something in this repo, even if they do not say "deliver".
-argument-hint: <change-name> <service-name|infrastructure>
+argument-hint: <issue-url|issue-number|description> [service-name|infrastructure]
 disable-model-invocation: true
 ---
 
 # Deliver change
 
-Arguments: `$0` = change name (kebab-case; used for the branch, the spec folder and the PR), `$1` = target: a service directory (`listing`, `media`, `booking`, `payment`, `review`, `favorites`, `notification`, `user`, `analytics`, `gateway`, `ui`) or `infrastructure` for cluster-level work. If either is missing, ask for it.
+Arguments: `$0` = what to deliver: a GitHub issue URL or number, or a description pasted in the chat. `$1` (optional) = target: a service directory (`listing`, `media`, `booking`, `payment`, `review`, `favorites`, `notification`, `user`, `analytics`, `gateway`, `ui`) or `infrastructure` for cluster-level work.
+
+Resolve the input first:
+
+- **Issue URL or number:** fetch it as `docs/agents/issue-tracker.md` describes (`gh issue view <n> --json number,title,body,labels,comments`). The issue is the starting requirement; keep its number for the PR.
+- **Pasted description:** use it as the requirement. No issue number.
+- If `$1` is missing, infer the target from the requirement; ask if it is not obvious.
+
+Derive `<name>` from the issue title or description: kebab-case, at most five words. It names the branch, the spec folder and the PR.
+Call the target `<target>` below (`$1`, or the one you inferred).
 
 Run the steps in order and stop at the first failure. The git, docker and kubectl commands are exact; do not alter them.
 
 Why this shape: the spec is written and attacked before any code exists, because a wrong spec is the most expensive bug. The work happens in a worktree so the user's main checkout stays untouched while this runs.
 
-Branch prefix: `feat/` for a new capability, `fix/` for a bug, `infra/` when `$1` is `infrastructure`. Call it `<prefix>/$0` below.
+Branch prefix: `feat/` for a new capability, `fix/` for a bug, `infra/` when `<target>` is `infrastructure`. Call it `<prefix>/<name>` below.
 
 ## 1. Worktree
 
@@ -21,8 +30,8 @@ Start from an up-to-date `main` in a fresh worktree next to the repo. Do not tou
 
 ```sh
 git fetch origin
-git worktree add "../RaaS-$0" -b "<prefix>/$0" origin/main
-cd "../RaaS-$0"
+git worktree add "../RaaS-<name>" -b "<prefix>/<name>" origin/main
+cd "../RaaS-<name>"
 ```
 
 Do all remaining work inside that worktree. If the branch or folder already exists, stop and ask; it may be someone's unfinished work.
@@ -31,12 +40,12 @@ Do all remaining work inside that worktree. If the branch or folder already exis
 
 Planning docs live in `.planning/`:
 
-- `.planning/services/<service>/$0/spec.md` for a service
-- `.planning/infrastructure/$0/spec.md` for cluster work
+- `.planning/services/<service>/<name>/spec.md` for a service
+- `.planning/infrastructure/<name>/spec.md` for cluster work
 
 Create the folder if missing. `.planning/proposals/` holds unscheduled ideas; if a proposal covers this change, read it first and use it as input.
 
-Read `CLAUDE.md` and the guideline file it names for the target, plus `GLOSSARY.md` and `docs/adr/` if they exist. Then call the Skill tool with `grilling` to close the open questions with the user, one at a time, before writing.
+Read the issue body and comments if there is an issue. Read `CLAUDE.md` and the guideline file it names for the target, plus `GLOSSARY.md` and `docs/adr/` if they exist. Then call the Skill tool with `grilling` to close the open questions with the user, one at a time, before writing.
 
 Write `spec.md` with the `to-spec` template: Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, Further Notes. Do not publish it to the issue tracker; the file in `.planning` is the spec. Follow `to-spec` for test seams: prefer existing seams, as few as possible, and confirm them with the user.
 
@@ -68,7 +77,7 @@ Fix failures before continuing. Commit to the branch in small conventional commi
 - **Service:**
 
 ```sh
-powershell -File scripts/redeploy.ps1 -Service $1
+powershell -File scripts/redeploy.ps1 -Service <target>
 ```
 
 The script builds `raas/<service>:latest` and restarts its deployment (`<service>-deployment`, gateway: `gateway`).
@@ -85,10 +94,10 @@ After approval:
 
 1. `git status`, check for files that should not be committed, commit anything left.
 2. `git push -u origin HEAD`.
-3. Write the PR body with the Skill tool `pr`, linking the spec path. Open it:
+3. Write the PR body with the Skill tool `pr`, linking the spec path. If the work came from an issue, add `Closes #<n>`. Open it:
 
 ```sh
-gh pr create --title "<prefix>: $0" --body "<description>" --base main --head "<prefix>/$0" --assignee @me
+gh pr create --title "<prefix>: <name>" --body "<description>" --base main --head "<prefix>/<name>" --assignee @me
 ```
 
-Report the PR URL. Leave the worktree in place until the user confirms the PR is merged, then `git worktree remove "../RaaS-$0"`.
+Report the PR URL. Leave the worktree in place until the user confirms the PR is merged, then `git worktree remove "../RaaS-<name>"`.
