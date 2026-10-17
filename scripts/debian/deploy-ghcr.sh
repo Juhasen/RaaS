@@ -6,36 +6,17 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 REPO_ROOT="$(dirname "$(dirname "$DIR")")"
 cd "$REPO_ROOT"
 
-echo "============================================="
-echo "   Deploying RaaS from GHCR to local K3s"
-echo "============================================="
-echo ""
+# Usage: deploy-ghcr.sh [tag]
+#   tag  image tag to deploy for every service, e.g. sha-abc1234 (default: latest).
+#        CI publishes a complete sha-<short> set for every commit on main.
+# Non-interactive. If the 'regcred' pull secret does not exist yet, set GHCR_PAT
+# to a GitHub token with read:packages so the script can create it.
+TAG="${1:-latest}"
 
 # All images live in the project owner's GHCR namespace.
 gh_username="juhasen"
 
-echo ""
-echo "Planned GHCR image pulls:"
-echo "  ghcr.io/${gh_username}/booking:latest"
-echo "  ghcr.io/${gh_username}/listing:latest"
-echo "  ghcr.io/${gh_username}/media:latest"
-echo "  ghcr.io/${gh_username}/favorites:latest"
-echo "  ghcr.io/${gh_username}/payment:latest"
-echo "  ghcr.io/${gh_username}/review:latest"
-echo "  ghcr.io/${gh_username}/analytics:latest"
-echo "  ghcr.io/${gh_username}/notification:latest"
-echo "  ghcr.io/${gh_username}/user:latest"
-echo "  ghcr.io/${gh_username}/ui:latest"
-echo "  ghcr.io/${gh_username}/gateway:latest"
-echo ""
-read -p "Continue with these image names? [y/N]: " confirm
-case "$confirm" in
-    [yY]|[yY][eE][sS]) ;;
-    *)
-        echo "Aborted."
-        exit 1
-        ;;
-esac
+echo "Deploying ghcr.io/${gh_username}/<service>:${TAG}"
 
 if kubectl get namespace >/dev/null 2>&1; then
     KUBECTL_CMD=(kubectl)
@@ -58,18 +39,14 @@ kc() {
 echo "Applying namespace..."
 kc apply -f k8s/infra/namespace.yaml
 
-# Check if image pull secret exists, if not create it
+# Image pull secret for GHCR: create it once from $GHCR_PAT
 if ! kc get secret regcred -n raas >/dev/null 2>&1; then
-    echo "Image pull secret 'regcred' not found in namespace 'raas'!"
-    echo "Since you chose to use private packages, please provide your GitHub Personal Access Token (PAT) to create it."
-    read -sp "GitHub Personal Access Token (PAT): " pat_token
-    echo ""
-    kc create secret docker-registry regcred \
-      --docker-server=ghcr.io \
-      --docker-username="${gh_username}" \
-      --docker-password="${pat_token}" \
-      -n raas
-    echo "Secret 'regcred' created successfully!"
+    if [ -z "${GHCR_PAT:-}" ]; then
+        echo "Image pull secret 'regcred' not found in namespace 'raas'. Re-run with GHCR_PAT set to a GitHub token with read:packages."
+        exit 1
+    fi
+    kc create secret docker-registry regcred       --docker-server=ghcr.io       --docker-username="${gh_username}"       --docker-password="${GHCR_PAT}"       -n raas
+    echo "Secret 'regcred' created."
 else
     echo "Using existing 'regcred' image pull secret."
 fi
@@ -122,10 +99,24 @@ for db in "${dbs[@]}"; do
     kc exec -n raas "$pgPod" -- psql -U raas_user -d raas_db -c "CREATE DATABASE $db;" 2>/dev/null || true
 done
 
-echo "Applying applications (Kustomize ghcr overlay)..."
-kc apply -k k8s/overlays/ghcr
+echo "Applying applications (Kustomize ghcr overlay, tag ${TAG})..."
+# Pin every image to $TAG with a temporary overlay on top of the ghcr overlay.
+RENDER_DIR=$(mktemp -d)
+trap 'rm -rf "$RENDER_DIR"' EXIT
+cp -R k8s "$RENDER_DIR/k8s"
+{
+    echo "apiVersion: kustomize.config.k8s.io/v1beta1"
+    echo "kind: Kustomization"
+    echo "resources:"
+    echo "  - k8s/overlays/ghcr"
+    echo "images:"
+    for svc in booking listing media favorites payment review analytics notification user ui gateway; do
+        echo "  - name: ghcr.io/${gh_username}/${svc}"
+        echo "    newTag: ${TAG}"
+    done
+} > "$RENDER_DIR/kustomization.yaml"
+kc kustomize "$RENDER_DIR" | kc apply -f -
 
-echo "Forcing rollout restart so the newest GHCR images are pulled..."
 deployments=(
     "booking-deployment"
     "listing-deployment"
@@ -139,9 +130,13 @@ deployments=(
     "ui-deployment"
     "gateway"
 )
-for deployment in "${deployments[@]}"; do
-    kc rollout restart deployment/$deployment -n raas
-done
+# A new tag changes the pod spec and rolls out by itself; 'latest' needs a restart to re-pull.
+if [ "$TAG" = "latest" ]; then
+    echo "Tag is 'latest': forcing rollout restart so the newest images are pulled..."
+    for deployment in "${deployments[@]}"; do
+        kc rollout restart deployment/$deployment -n raas
+    done
+fi
 
 for deployment in "${deployments[@]}"; do
     kc rollout status deployment/$deployment -n raas --timeout=120s
