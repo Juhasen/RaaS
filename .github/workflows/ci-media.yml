@@ -1,0 +1,26 @@
+name: CI media
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "media/**"
+      - ".github/workflows/ci-media.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "media/**"
+      - ".github/workflows/ci-media.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: media
+      stack: go

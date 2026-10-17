@@ -1,0 +1,26 @@
+name: CI review
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "review/**"
+      - ".github/workflows/ci-review.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "review/**"
+      - ".github/workflows/ci-review.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: review
+      stack: java

@@ -1,0 +1,26 @@
+name: CI notification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "notification/**"
+      - ".github/workflows/ci-notification.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "notification/**"
+      - ".github/workflows/ci-notification.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: notification
+      stack: python

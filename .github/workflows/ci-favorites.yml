@@ -1,0 +1,26 @@
+name: CI favorites
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "favorites/**"
+      - ".github/workflows/ci-favorites.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "favorites/**"
+      - ".github/workflows/ci-favorites.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: favorites
+      stack: java

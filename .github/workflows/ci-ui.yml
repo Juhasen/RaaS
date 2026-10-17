@@ -1,0 +1,26 @@
+name: CI ui
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ui/**"
+      - ".github/workflows/ci-ui.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "ui/**"
+      - ".github/workflows/ci-ui.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: ui
+      stack: ui

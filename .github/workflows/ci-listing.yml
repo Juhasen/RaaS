@@ -1,0 +1,26 @@
+name: CI listing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "listing/**"
+      - ".github/workflows/ci-listing.yml"
+      - ".github/workflows/service.yml"
+  pull_request:
+    paths:
+      - "listing/**"
+      - ".github/workflows/ci-listing.yml"
+      - ".github/workflows/service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/service.yml
+    with:
+      dir: listing
+      stack: go
