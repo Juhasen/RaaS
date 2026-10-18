@@ -25,7 +25,7 @@ spec:
           volumeMounts:
             - { name: proc, mountPath: /host/proc, readOnly: true }
             - { name: sys, mountPath: /host/sys, readOnly: true }
-            - { name: root, mountPath: /host/root, readOnly: true, mountPropagation: HostToContainer }
+            - { name: root, mountPath: /host/root, readOnly: true }
       volumes:
         - { name: proc, hostPath: { path: /proc } }
         - { name: sys, hostPath: { path: /sys } }
