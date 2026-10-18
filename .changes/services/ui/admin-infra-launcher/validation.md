@@ -22,3 +22,13 @@
 
 ## After code review
 Re-ran `scripts/admin-secrets.ps1` (all Secrets `unchanged`; with `.passwords` moved away it refuses with "is missing but the cluster already has credentials") and `ng test` (12 pass).
+
+## Media URL fix (added during manual testing)
+Uploaded images were stored as `http://localhost:9000/...`, unreachable without a port-forward. Now `S3_PUBLIC_URL=/media-files`, served by a new gateway route to the MinIO bucket (same origin, host independent).
+
+| Level | What was run | Result |
+|---|---|---|
+| Deployment | applied gateway ConfigMap and `media.yaml`, restarted both | rollouts complete |
+| Endpoint | `curl localhost:30000/media-files/<key>` | 200 `image/jpeg` |
+| Data | `scripts/migrate-media-urls.ps1` (listing `raas.listings` 1 doc, `media_db.media` 3 docs); re-run prints nothing | listing now returns `/media-files/...` |
+| Not verified | a fresh upload through the UI as a host, and the image rendering in the browser | pending the user |
