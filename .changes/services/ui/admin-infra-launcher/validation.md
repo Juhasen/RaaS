@@ -19,3 +19,6 @@
 - `kubectl top pod`: no metrics-server in the cluster; memory read from the container cgroup instead.
 - Console behaviour over WebSocket/SSE live views through the proxy: config is in place, not exercised.
 - The `.passwords` file lives in the worktree (`..\RaaS-admin-infra-launcher`); the cluster Secrets already hold the generated values. Running the script from another checkout creates a new `.passwords` and rotates them.
+
+## After code review
+Re-ran `scripts/admin-secrets.ps1` (all Secrets `unchanged`; with `.passwords` moved away it refuses with "is missing but the cluster already has credentials") and `ng test` (12 pass).

@@ -96,3 +96,9 @@ Seams: `adminGuard` (with a stubbed `AuthService`) and `AdminToolsComponent`. Bo
 
 Accepted: Adminer port clash (30080 is `ui`, moved to 30090); pinned images and ports; Console/Kafka 4 compatibility check and topics-list AC; concrete WebSocket nginx config and apr1 hash; `userLoaded` on error/server/login; route order in `app.routes.server.ts`; exact curl codes, endpoints, unique nodePorts, build/lint ACs; namespace and no `commonLabels`; probes; higher limits (Adminer 96Mi, Console 256Mi); `noreferrer`; `id` for tracking; self-registration hole recorded.
 Rejected: deriving the host from `window.location.hostname` (YAGNI, cloud address is a config change; SSR guard cost); replacing the Console with another UI or dropping its button (user decided Console with auth); CPU requests; test for the server route list; accessibility/empty-state ACs beyond semantic links (links with text satisfy AXE basics; no data states exist).
+
+### Code review outcome
+
+Fixed: unbiased password alphabet, refusal to replace live Secrets when `.passwords` is missing (needs `-Rotate`), `.passwords` written last, `$args` shadowing, `readonly userLoaded`.
+Rejected: guard timeout (HTTP client limits apply, YAGNI); NetworkPolicy for Console (out of scope, Docker Desktop does not enforce); editing `.passwords` by hand (file header says use `-Rotate`); other start scripts (none applied `minio.yaml`, so none lose a Secret).
+Open, for the user: Adminer still logs into Postgres with the hard-coded `raas_user`/`raas_password`, and basic auth/logins travel over plain HTTP on NodePorts. Both block a real cloud deploy ("as they are" holds only for the Secrets); tracked as follow-ups (Postgres password rotation, TLS/ingress).

@@ -17,7 +17,7 @@ export class AuthService {
   isAuthenticated = computed(() => this.currentUserSignal() !== null);
 
   // Settles once the initial /users/me lookup is done (or skipped), so guards can wait for it.
-  userLoaded: Promise<void>;
+  readonly userLoaded: Promise<void>;
   
   constructor() {
     this.userLoaded = this.loadCurrentUser();
