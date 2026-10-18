@@ -5,10 +5,12 @@ metadata:
 spec:
   capacity:
     storage: 5Gi
+  storageClassName: ""
   accessModes:
     - ReadWriteOnce
   hostPath:
     path: /mnt/data/minio
+    type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -16,6 +18,8 @@ metadata:
   name: minio-pvc
   namespace: raas
 spec:
+  storageClassName: ""
+  volumeName: minio-pv
   accessModes:
     - ReadWriteOnce
   resources:
