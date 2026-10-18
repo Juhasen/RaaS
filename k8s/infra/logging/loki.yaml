@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: raas
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      # Loki does not create its bucket. mc is distroless: exec form, credentials via MC_HOST_minio,
+      # retries come from kubelet restarting the init container while MinIO is down.
+      initContainers:
+        - name: create-bucket
+          image: cgr.dev/chainguard/minio-client@sha256:3d0109d854f045c0158637d6ad0d44fd8a3aef9f0b62082096eb1854c2df8b31
+          args: ["mb", "--ignore-existing", "minio/raas-loki"]
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef: { name: minio-credentials, key: MINIO_ROOT_USER }
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: minio-credentials, key: MINIO_ROOT_PASSWORD }
+            - name: MC_HOST_minio
+              value: http://$(MINIO_ROOT_USER):$(MINIO_ROOT_PASSWORD)@minio:9000
+      containers:
+        - name: loki
+          image: grafana/loki:3.5.0
+          args:
+            - -config.file=/etc/loki/loki.yaml
+            - -config.expand-env=true
+            - -target=all
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef: { name: minio-credentials, key: MINIO_ROOT_USER }
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: minio-credentials, key: MINIO_ROOT_PASSWORD }
+          ports:
+            - containerPort: 3100
+          resources:
+            limits:
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 15
+          volumeMounts:
+            - name: config
+              mountPath: /etc/loki
+            # ponytail: WAL and unshipped index are lost when the pod is replaced; use a PVC if that matters
+            - name: data
+              mountPath: /loki
+      volumes:
+        - name: config
+          configMap:
+            name: loki-config
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: raas
+spec:
+  selector:
+    app: loki
+  ports:
+    - port: 3100
+      targetPort: 3100

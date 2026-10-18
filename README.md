@@ -109,6 +109,10 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
     ```bash
     kubectl apply -k k8s/infra/monitoring
     ```
+    Optional central logs (Loki and Grafana Alloy, chunks stored in MinIO, needs the infra layer above; view in Grafana, dashboard "RaaS Logs"):
+    ```bash
+    kubectl apply -k k8s/infra/logging
+    ```
 3.  Deploy your domain-specific application track (or all of them):
 
     ```bash

@@ -1,0 +1,82 @@
+{
+ "uid": "raas-logs",
+ "title": "RaaS Logs",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "30s",
+ "time": { "from": "now-1h", "to": "now" },
+ "templating": {
+  "list": [
+   {
+    "name": "app",
+    "type": "query",
+    "label": "app",
+    "datasource": { "type": "loki", "uid": "loki" },
+    "query": { "label": "app", "stream": "", "type": 1, "refId": "app" },
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".+",
+    "current": { "selected": true, "text": "All", "value": "$__all" }
+   },
+   {
+    "name": "pod",
+    "type": "query",
+    "label": "pod",
+    "datasource": { "type": "loki", "uid": "loki" },
+    "query": { "label": "pod", "stream": "{app=~\"$app\"}", "type": 1, "refId": "pod" },
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".+",
+    "current": { "selected": true, "text": "All", "value": "$__all" }
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "timeseries",
+   "title": "Log volume by app",
+   "datasource": { "type": "loki", "uid": "loki" },
+   "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+   "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (app) (count_over_time({namespace=\"raas\", app=~\"$app\", pod=~\"$pod\"}[$__auto]))",
+     "legendFormat": "{{app}}"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "type": "timeseries",
+   "title": "Error lines by app",
+   "datasource": { "type": "loki", "uid": "loki" },
+   "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+   "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (app) (count_over_time({namespace=\"raas\", app=~\"$app\", pod=~\"$pod\"} |~ \"(?i)error\" [$__auto]))",
+     "legendFormat": "{{app}}"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "type": "logs",
+   "title": "Logs",
+   "datasource": { "type": "loki", "uid": "loki" },
+   "gridPos": { "x": 0, "y": 8, "w": 24, "h": 14 },
+   "options": { "showTime": true, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "{namespace=\"raas\", app=~\"$app\", pod=~\"$pod\"}"
+    }
+   ]
+  }
+ ]
+}
