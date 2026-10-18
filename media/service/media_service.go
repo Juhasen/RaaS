@@ -13,8 +13,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
@@ -77,28 +75,11 @@ type MediaService struct {
 
 // NewMediaService instantiates a new MediaService.
 func NewMediaService(repo repository.MediaRepository, cfg *Config, kafkaBrokers []string, kafkaTopic string) *MediaService {
-	accountID := cfg.R2AccountID
-	accessKey := cfg.R2AccessKeyID
-	secretKey := cfg.R2SecretAccessKey
-	bucketName := cfg.R2BucketName
-	publicURL := cfg.R2PublicURL
-
-	var s3Client *s3.Client
-	if accountID != "" && accessKey != "" && secretKey != "" {
-		awsCfg, err := config.LoadDefaultConfig(context.Background(),
-			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
-			config.WithRegion("auto"),
-		)
-		if err == nil {
-			s3Client = s3.NewFromConfig(awsCfg, func(o *s3.Options) {
-				o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountID))
-			})
-			log.Println("Initialized Cloudflare R2 S3 Client successfully")
-		} else {
-			log.Printf("Failed to initialize R2 configuration: %v", err)
-		}
+	s3Client := newS3Client(cfg)
+	if s3Client != nil {
+		go bucketReady(s3Client, cfg.S3Bucket) // async: blocking here outlasts the liveness probe
 	} else {
-		log.Println("Cloudflare R2 credentials not fully provided; running in local fallback directory mode")
+		log.Println("S3 settings not fully provided; running in local fallback directory mode")
 	}
 
 	var kw *kafka.Writer
@@ -118,13 +99,13 @@ func NewMediaService(repo repository.MediaRepository, cfg *Config, kafkaBrokers 
 		repo:         repo,
 		s3Client:     s3Client,
 		kafkaWriter:  kw,
-		bucketName:   bucketName,
-		publicURL:    publicURL,
+		bucketName:   cfg.S3Bucket,
+		publicURL:    publicURL(cfg),
 		localStorage: localStore,
 	}
 }
 
-// UploadMedia checks the file MIME type, uploads to Cloudflare R2 or local disk, saves metadata, and posts a Kafka event.
+// UploadMedia checks the file MIME type, uploads to S3 (MinIO) or local disk, saves metadata, and posts a Kafka event.
 func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *multipart.FileHeader) (*models.Media, error) {
 	log.Printf("Starting media upload for listing %s: filename=%s content_type=%s size=%d", listingID, file.Filename, file.Header.Get("Content-Type"), file.Size)
 
@@ -161,7 +142,7 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 	var fileURL string
 
 	if s.s3Client != nil {
-		log.Printf("Uploading media for listing %s to Cloudflare R2 bucket %s", listingID, s.bucketName)
+		log.Printf("Uploading media for listing %s to S3 bucket %s", listingID, s.bucketName)
 		_, err = s.s3Client.PutObject(ctx, &s3.PutObjectInput{
 			Bucket:      aws.String(s.bucketName),
 			Key:         aws.String(key),
@@ -169,16 +150,12 @@ func (s *MediaService) UploadMedia(ctx context.Context, listingID string, file *
 			ContentType: aws.String(contentType),
 		})
 		if err != nil {
-			log.Printf("Failed to upload media object for listing %s to Cloudflare R2: %v", listingID, err)
-			return nil, fmt.Errorf("failed to upload object to Cloudflare R2: %w", err)
+			log.Printf("Failed to upload media object for listing %s to S3: %v", listingID, err)
+			return nil, fmt.Errorf("failed to upload object to S3: %w", err)
 		}
 
-		if s.publicURL != "" {
-			fileURL = fmt.Sprintf("%s/%s", strings.TrimSuffix(s.publicURL, "/"), key)
-		} else {
-			fileURL = fmt.Sprintf("https://%s.r2.cloudflarestorage.com/%s/%s", os.Getenv("R2_ACCOUNT_ID"), s.bucketName, key)
-		}
-		log.Printf("Stored media for listing %s in R2 with url %s", listingID, fileURL)
+		fileURL = fmt.Sprintf("%s/%s", s.publicURL, key)
+		log.Printf("Stored media for listing %s in S3 with url %s", listingID, fileURL)
 	} else {
 		log.Printf("Uploading media for listing %s to local storage under %s", listingID, s.localStorage)
 		destPath := filepath.Join(s.localStorage, listingID)
@@ -249,7 +226,7 @@ func (s *MediaService) FindByListingID(ctx context.Context, listingID string) ([
 	return s.repo.FindByListingID(ctx, listingID)
 }
 
-// DeleteMediaByListingID removes the local directory or R2 objects associated with listingID, and deletes database records.
+// DeleteMediaByListingID removes the local directory or S3 objects associated with listingID, and deletes database records.
 func (s *MediaService) DeleteMediaByListingID(ctx context.Context, listingID string) error {
 	// 1. Fetch metadata records first
 	mediaList, err := s.repo.FindByListingID(ctx, listingID)
@@ -259,7 +236,7 @@ func (s *MediaService) DeleteMediaByListingID(ctx context.Context, listingID str
 
 	// 2. Delete actual files
 	if s.s3Client != nil {
-		// Delete objects from Cloudflare R2
+		// Delete objects from S3
 		for _, m := range mediaList {
 			ext := filepath.Ext(m.URL)
 			key := fmt.Sprintf("%s/%s%s", listingID, m.ID, ext)

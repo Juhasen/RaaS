@@ -11,11 +11,13 @@ type Config struct {
 	KafkaBrokers []string `env:"KAFKA_BROKERS,default=localhost:9092"`
 	Port         string   `env:"PORT,default=8080"`
 
-	R2AccountID       string `env:"R2_ACCOUNT_ID"`
-	R2AccessKeyID     string `env:"R2_ACCESS_KEY_ID"`
-	R2SecretAccessKey string `env:"R2_SECRET_ACCESS_KEY"`
-	R2BucketName      string `env:"R2_BUCKET_NAME,default=raas"`
-	R2PublicURL       string `env:"R2_PUBLIC_URL"`
+	S3Endpoint  string `env:"S3_ENDPOINT"`
+	S3AccessKey string `env:"S3_ACCESS_KEY"`
+	S3SecretKey string `env:"S3_SECRET_KEY"`
+	S3Bucket    string `env:"S3_BUCKET,default=raas-media-bucket"`
+	S3Region    string `env:"AWS_REGION,default=us-east-1"`
+	// S3PublicURL is the browser-reachable base URL stored in media records; defaults to endpoint/bucket.
+	S3PublicURL string `env:"S3_PUBLIC_URL"`
 
 	Extras env.EnvSet
 }
