@@ -1,3 +1,14 @@
+# One command from a fresh clone: build all images, then deploy (see start-local-k8s.ps1 for the switches).
+param (
+    [switch]$Monitoring,
+    [switch]$Logging,
+    [switch]$AdminTools
+)
+
+$ErrorActionPreference = 'Stop'
+docker info *> $null
+if ($LASTEXITCODE -ne 0) { throw "Docker is not running." }
+
 $repoRoot = Resolve-Path "$PSScriptRoot\.."
 Push-Location $repoRoot
 
@@ -49,4 +60,4 @@ Write-Host "Starting Kubernetes deployments..."
 Start-Sleep -Seconds 2
 
 # Call the local k8s startup script
-.\scripts\start-local-k8s.ps1
+& "$PSScriptRoot\start-local-k8s.ps1" -Monitoring:$Monitoring -Logging:$Logging -AdminTools:$AdminTools
