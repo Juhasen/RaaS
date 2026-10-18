@@ -1,7 +1,7 @@
 import { inject, Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { finalize, Observable, tap } from 'rxjs';
 import { User, TokenResponse } from '../models/user.model';
 
 @Injectable({
@@ -58,10 +58,12 @@ export class AuthService {
   }
   
   logout(): void {
-    // Clears the HttpOnly cookie the admin tools rely on; the local token goes regardless of the result.
-    this.http.post('/api/users/logout', null).subscribe({ error: () => undefined });
-    this.clearAuth();
-    this.router.navigate(['/login']);
+    // Clears the HttpOnly cookie the admin tools rely on. Navigation waits for the request so it is not
+    // cancelled; the local session ends even if the call fails (the cookie then expires on its own).
+    this.http.post('/api/users/logout', null).pipe(finalize(() => {
+      this.clearAuth();
+      this.router.navigate(['/login']);
+    })).subscribe({ error: () => undefined });
   }
   
   private clearAuth(): void {

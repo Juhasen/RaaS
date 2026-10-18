@@ -32,7 +32,22 @@ try:
 except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
 
-app = FastAPI(title="User Service", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Fail startup instead of running with no admin or with leftover self-registered admins.
+    email, password = os.getenv("ADMIN_EMAIL"), os.getenv("ADMIN_PASSWORD")
+    if not email or not password:
+        raise RuntimeError("ADMIN_EMAIL and ADMIN_PASSWORD must be set")
+    session = postgres.SessionLocal()
+    try:
+        seed_admin(session, email, password)
+    except IntegrityError:
+        session.rollback()  # another replica seeded at the same time
+    finally:
+        session.close()
+    yield
+
+app = FastAPI(title="User Service", version="1.0.0", lifespan=lifespan)
 
 Instrumentator().instrument(app).expose(app)
 
@@ -62,13 +77,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-) -> User:
-    # Header wins; the cookie lets plain link clicks (admin tools) authenticate.
-    token = credentials.credentials if credentials else request.cookies.get(COOKIE_NAME)
+def user_from_token(token: str | None, db: Session) -> User:
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     try:
@@ -83,6 +92,22 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    return user_from_token(credentials.credentials if credentials else None, db)
+
+async def get_admin_check_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    # Only the gateway auth_request uses the cookie (plain link clicks cannot send a header).
+    # Header wins. Every other endpoint stays header-only, so it is not exposed to CSRF.
+    token = credentials.credentials if credentials else request.cookies.get(COOKIE_NAME)
+    return user_from_token(token, db)
 
 # Health check endpoint
 @app.get("/health")
@@ -117,18 +142,6 @@ def seed_admin(db: Session, email: str, password: str):
 
 def _hash(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-if os.getenv("ADMIN_EMAIL") and os.getenv("ADMIN_PASSWORD"):
-    if len(os.environ["ADMIN_PASSWORD"]) < 8:
-        raise ValueError("ADMIN_PASSWORD must be at least 8 characters")
-    try:
-        _session = postgres.SessionLocal()
-        try:
-            seed_admin(_session, os.environ["ADMIN_EMAIL"], os.environ["ADMIN_PASSWORD"])
-        finally:
-            _session.close()
-    except Exception as e:
-        logger.error(f"Failed to seed admin: {e}")
 
 # User Creation Endpoint
 @app.post("/users", response_model=UserResponse, status_code=201)
@@ -235,7 +248,7 @@ async def logout_user(response: Response):
 # Gateway auth_request target for the admin tools: 200 only for admins (role read from the DB row).
 # Declared before /users/{user_id}.
 @app.get("/users/admin-check")
-async def admin_check(response: Response, current_user: User = Depends(get_current_user)):
+async def admin_check(response: Response, current_user: User = Depends(get_admin_check_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin only")
     response.headers["X-Auth-User"] = current_user.email

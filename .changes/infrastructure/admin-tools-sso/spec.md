@@ -25,10 +25,10 @@ Serve the tools through the gateway on the UI's origin at `/admin/{grafana,minio
 
 - Login (`POST /users/login`) also sets cookie `raas_token`: HttpOnly, SameSite=Lax, Path=/, Max-Age = token lifetime, `Secure` only when env `COOKIE_SECURE=true` (default off; TLS is out of scope). Body unchanged, so the UI keeps working.
 - `POST /users/logout` clears the cookie (204).
-- `get_current_user` takes the token from the Bearer header, else the cookie. Header wins. `HTTPBearer(auto_error=False)` so a missing header gives 401, not FastAPI's default 403. `GET /users/admin-check` is declared before `GET /users/{user_id}`.
+- Only `GET /users/admin-check` accepts the cookie (header wins); every other endpoint stays Bearer-only, so the cookie adds no CSRF surface. `HTTPBearer(auto_error=False)` so a missing header gives 401, not FastAPI's default 403. `GET /users/admin-check` is declared before `GET /users/{user_id}`.
 - `GET /users/admin-check`: 200 for `role == admin` with response header `X-Auth-User: <email>`, 403 for other roles, 401 for no or invalid token. Reads the role from the DB row, not the token claim, so a demoted user loses access immediately.
 - Register/create: `UserCreateRequest.role` pattern becomes `^(guest|host)$`; `role=admin` gives 422.
-- Startup `seed_admin(session)` (a plain function, called at startup, unit-tested directly). `ADMIN_PASSWORD` must be at least 8 characters, else startup fails. Steps, idempotent:
+- `seed_admin(session)` runs in the FastAPI lifespan; startup fails if `ADMIN_EMAIL` / `ADMIN_PASSWORD` are unset (a unique-violation race between replicas is ignored). `ADMIN_PASSWORD` must be at least 8 characters, else startup fails. Steps, idempotent:
   1. Demote every user with role `admin` other than `ADMIN_EMAIL` to `guest` (removes earlier self-registered admins; logged).
   2. No user with `ADMIN_EMAIL`: create it as `admin` (bcrypt). No `user.created` event (analytics does not need the seed).
   3. User with `ADMIN_EMAIL` exists with role `admin`: set its password hash to `ADMIN_PASSWORD` if it differs (so `-Rotate` takes effect).
@@ -64,7 +64,7 @@ Serve the tools through the gateway on the UI's origin at `/admin/{grafana,minio
 ### ui (`ui/`)
 
 - `config/infra-tools.ts`: urls become `/admin/grafana/`, `/admin/minio/`, `/admin/adminer/`, `/admin/kafka/`.
-- `AuthService.logout()` also calls `POST /api/users/logout` (fire and forget) so the cookie is cleared.
+- `AuthService.logout()` calls `POST /api/users/logout` and clears local auth and navigates when it completes (success or failure), so navigation does not cancel the request.
 - Route, guard and page unchanged.
 
 ## Testing Decisions
@@ -114,3 +114,8 @@ Rejected: `auth_request` caching (YAGNI, single admin user, revisit if the user 
 - Origin is `localhost:30000`, not the ingress on port 80 (see Implementation Decisions).
 - Console base path via a config file, gateway keeps the prefix for `/admin/kafka/` (the other three strip it, Grafana keeps it).
 - The seeded admin email comes from `RAAS_ADMIN_EMAIL` in `.passwords`; the operator's existing file already had `admin@example.com`, which is therefore the seeded admin.
+
+### Code review outcome
+
+Fixed: Host header and Grafana `root_url` lacked the `:30000` port (browser redirect loop `/admin/grafana/admin/grafana/...`; admin blocks now send `Host $http_host`, root_url is `http://localhost:30000/admin/grafana/`); `Authorization` is blanked towards tools; cookie accepted only on `admin-check`; seed moved into the lifespan and fails startup without env; logout navigates after the request; script prints `:30000` URLs.
+Rejected: stripping duplicate `raas_token` cookies (the cookie is only ever set with Path=/ and no Domain, so duplicates do not arise); Console readiness probe worry (pods became Ready after the basePath config, rollout verified); moving `MINIO_BROWSER_REDIRECT_URL` out of `minio.yaml` (kustomize cannot patch a resource outside the admin-tools kustomization, and the value is documented as local); deduplicating the four gateway blocks (an include would need another ConfigMap key, not worth it).

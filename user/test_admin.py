@@ -121,3 +121,27 @@ def test_startup_requires_jwt_secret():
     env = {k: v for k, v in os.environ.items() if k != "JWT_SECRET"}
     r = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True)
     assert r.returncode != 0 and "JWT_SECRET" in r.stderr
+
+
+def test_cookie_works_only_for_admin_check(client, db):
+    add_user(db, "adm@x.io", "admin")
+    client.cookies.set("raas_token", login(client, "adm@x.io").json()["access_token"])
+    assert client.get("/users/admin-check").status_code == 200
+    assert client.get("/users/me").status_code == 401
+
+
+def test_lifespan_requires_admin_env(monkeypatch):
+    monkeypatch.delenv("ADMIN_EMAIL", raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    with pytest.raises(RuntimeError):
+        with TestClient(main.app):
+            pass
+
+
+def test_lifespan_seeds_admin(db, monkeypatch):
+    monkeypatch.setenv("ADMIN_EMAIL", "adm@x.io")
+    monkeypatch.setenv("ADMIN_PASSWORD", "seedpass1")
+    monkeypatch.setattr(main.postgres, "SessionLocal", lambda: db)
+    with TestClient(main.app):
+        pass
+    assert db.query(User).filter_by(email="adm@x.io").one().role == "admin"

@@ -2,11 +2,12 @@
 
 | Level | What was run | Result |
 |---|---|---|
-| Unit / integration (user) | `pytest` in `user/` (venv, Python 3.13, unpinned deps): cookie on login, `admin-check` via cookie and Bearer (200 + `X-Auth-User`), 403 for guest/host, 403 after demotion, 401 without/with bad token, `role=admin` register gives 422, logout clears cookie, seed (demote others, create, idempotent, password sync, no promotion of existing non-admin, short password), import fails without `JWT_SECRET` | pass, 12 tests |
+| Unit / integration (user) | `pytest` in `user/` (venv, Python 3.13, unpinned deps): cookie on login, `admin-check` via cookie and Bearer (200 + `X-Auth-User`), 403 for guest/host, 403 after demotion, 401 without/with bad token, `role=admin` register gives 422, logout clears cookie, seed (demote others, create, idempotent, password sync, no promotion of existing non-admin, short password), import fails without `JWT_SECRET` | pass, 15 tests |
 | Unit (ui) | `npm run test -- --watch=false`, `npx ng build` | pass, 13 tests; build ok |
 | Manifests | `kubectl apply -k k8s/infra/admin-tools`, `kubectl apply -k k8s/infra/monitoring` | applied; no NodePort left for the four tools |
 | Deployment | `scripts/admin-secrets.ps1`, applied manifests, `redeploy.ps1` for user, gateway, ui; curl against `localhost:30000` | see below |
-| Manual | Browser run of the four buttons | pending the user |
+| Browser (Playwright, Edge headless) | log in as the admin, open each `/admin/<tool>/` | Grafana dashboard home, MinIO login page, Adminer login page, Console overview all render with no redirect loop |
+| Manual | Click through the four buttons and log in where asked | pending the user |
 
 Deployment checks (all against `localhost:30000`):
 
@@ -24,6 +25,6 @@ Deployment checks (all against `localhost:30000`):
 ## Not verified
 
 - Memory before/after: `kubectl top` has no Metrics API here and Prometheus has no container memory series. No new pod was added; `redpanda-console-auth` (16Mi request, 32Mi limit) was removed.
-- Browser behaviour of the tool UIs under the sub-path (JS-driven navigation, MinIO login flow, Console SPA routing) was only checked by fetching HTML, assets and API calls. The manual check is pending the user.
+- Browser check covers landing pages only; logins inside MinIO and Adminer and deeper navigation were not driven. A first browser test by the user found a Grafana redirect loop (root_url without port); fixed and re-verified in the browser.
 - Pre-existing admins demoted at startup: the cluster had only the account that is now the seeded admin, so the demote path ran on the unit test only.
 - The 2-minute stability check was not repeated after the last restart cycle.
