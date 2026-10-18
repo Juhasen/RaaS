@@ -10,22 +10,10 @@ metadata:
   name: raas-kube-state-metrics
 rules:
   - apiGroups: [""]
-    resources: [configmaps, secrets, nodes, pods, services, serviceaccounts, resourcequotas, replicationcontrollers, limitranges, persistentvolumeclaims, persistentvolumes, namespaces, endpoints]
+    resources: [nodes, pods, namespaces]
     verbs: [list, watch]
   - apiGroups: [apps]
-    resources: [statefulsets, daemonsets, deployments, replicasets]
-    verbs: [list, watch]
-  - apiGroups: [batch]
-    resources: [cronjobs, jobs]
-    verbs: [list, watch]
-  - apiGroups: [autoscaling]
-    resources: [horizontalpodautoscalers]
-    verbs: [list, watch]
-  - apiGroups: [networking.k8s.io]
-    resources: [ingresses, networkpolicies]
-    verbs: [list, watch]
-  - apiGroups: [storage.k8s.io]
-    resources: [storageclasses, volumeattachments]
+    resources: [deployments, replicasets, daemonsets, statefulsets]
     verbs: [list, watch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -59,8 +47,11 @@ spec:
       containers:
         - name: kube-state-metrics
           image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0
+          args:
+            - --resources=nodes,pods,namespaces,deployments,replicasets,daemonsets,statefulsets
           ports:
             - containerPort: 8080
+            - containerPort: 8081
           readinessProbe:
             httpGet:
               path: /readyz

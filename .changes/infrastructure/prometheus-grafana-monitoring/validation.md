@@ -28,3 +28,20 @@ Run on the live Docker Desktop cluster (context `docker-desktop`, namespace `raa
 - Notification and analytics have no `/metrics` test; they are covered only by their live targets being `up`.
 - Filesystem metrics describe the Docker Desktop VM, not the Windows host.
 - Prometheus and Grafana use `emptyDir`; history and any UI edits are lost on pod restart.
+
+## Code review (`code-review`, high)
+Fixed:
+- kube-state-metrics could list every Secret and ConfigMap cluster-wide. The ClusterRole is cut to nodes, pods, namespaces, deployments, replicasets, daemonsets and statefulsets, and the binary is limited with `--resources=`. Re-checked live: pod phase, restart and deployment series still return data.
+- Declared kube-state-metrics port 8081, used by the readiness probe.
+- Grafana memory: request 128Mi, limit 512Mi (was 256Mi limit only).
+
+Accepted and left as is (documented in the spec):
+- Exporters use the app DB user and inline credentials, like the existing infra manifests.
+- Grafana `admin`/`admin` secret; ClusterIP only, reached by port-forward.
+- Static scrape targets scrape one replica per Service; revisit with HPA.
+- `httpx` in `user/requirements.txt`; moving it to a dev file needs a change to the shared CI workflow.
+- The Go latency panel matches the metric name by regex.
+- The disk panel mountpoint `/var/lib` is specific to Docker Desktop.
+- No limits on Prometheus and the exporters.
+
+The finding that the branch carries unrelated agent-workflow changes was a false positive: it diffed against a stale local `main`; the PR diff (`gh pr diff 46`) contains only monitoring and instrumentation files.
