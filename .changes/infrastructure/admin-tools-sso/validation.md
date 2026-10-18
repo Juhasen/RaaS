@@ -22,6 +22,8 @@ Deployment checks (all against `localhost:30000`):
 - `raas_token` stripping from the cookie forwarded to tools: tested the `map` in a stock nginx container (6 cookie shapes, including a lookalike name); not observed inside a real tool.
 - All pods Running, 0 restarts (checked right after the final apply).
 
+Browser (Playwright, Edge headless) also covers: the admin-page button for Grafana in a new tab, `/admin/grafana` without slash, `/login`, dashboards, a not-found path, logout, Console `topics?showInternal=true` (`api/topics` 200), and the same on `127.0.0.1:30000`.
+
 ## Not verified
 
 - Memory before/after: `kubectl top` has no Metrics API here and Prometheus has no container memory series. No new pod was added; `redpanda-console-auth` (16Mi request, 32Mi limit) was removed.

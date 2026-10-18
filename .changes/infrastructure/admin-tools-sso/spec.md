@@ -119,3 +119,8 @@ Rejected: `auth_request` caching (YAGNI, single admin user, revisit if the user 
 
 Fixed: Host header and Grafana `root_url` lacked the `:30000` port (browser redirect loop `/admin/grafana/admin/grafana/...`; admin blocks now send `Host $http_host`, root_url is `http://localhost:30000/admin/grafana/`); `Authorization` is blanked towards tools; cookie accepted only on `admin-check`; seed moved into the lifespan and fails startup without env; logout navigates after the request; script prints `:30000` URLs.
 Rejected: stripping duplicate `raas_token` cookies (the cookie is only ever set with Path=/ and no Domain, so duplicates do not arise); Console readiness probe worry (pods became Ready after the basePath config, rollout verified); moving `MINIO_BROWSER_REDIRECT_URL` out of `minio.yaml` (kustomize cannot patch a resource outside the admin-tools kustomization, and the value is documented as local); deduplicating the four gateway blocks (an include would need another ConfigMap key, not worth it).
+
+### Found in browser testing
+
+- Console's own `Authorization` header made `admin-check` 401 (header wins), so `/admin/kafka/api/topics` failed. The gateway auth subrequest now forwards the cookie only and blanks `Authorization`.
+- `/admin/<tool>` without the slash redirected to `http://localhost/...` (port lost) and was cached as a 301. Now `absolute_redirect off` with a 302.
