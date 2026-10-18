@@ -48,7 +48,7 @@ Serve the tools through the gateway on the UI's origin at `/admin/{grafana,minio
   - MinIO console: gateway strips the prefix, `MINIO_BROWSER_REDIRECT_URL` points at `/admin/minio`.
   - Redpanda Console: `SERVER_BASEPATH=/admin/kafka` (exact keys for the pinned v3.3.0 verified at implementation).
   - Adminer: no base-path setting; the gateway strips the prefix and relative links are checked in the deployment check.
-  - If a tool cannot work under a sub-path, ask the user then: drop that tool from the gateway rather than ship a broken button.
+  - Every tool must work under its sub-path (user decision: no dropping). If a setting is not enough, make it work in the gateway (`sub_filter` rewrite of absolute links, `proxy_redirect`, cookie path) and keep it documented in the gateway block.
 - Grafana's own login stays enabled and its Service is ClusterIP only. Accepted risk: any pod in the cluster can still send `X-WEBAUTH-USER` to `grafana:3000` (no NetworkPolicy, and Docker Desktop does not enforce one); the same holds for Console. Fine for the local single-tenant cluster; a NetworkPolicy restricting these Services to the gateway is a required follow-up before a cloud deploy. The proxied identity is an Org Admin login `admin@raas.local`, not Grafana server admin; the `grafana-admin` credentials stay the server-admin path. Grafana's readiness probe path is re-checked under the sub-path and adjusted if it breaks.
 - Users logged in before the deploy have no cookie: they must log in again. Logout is a fire-and-forget POST; a failed call leaves the cookie valid until its 24h expiry (no revocation, same as the JWT today).
 - Supported origin: the Traefik ingress on `localhost:80` (and gateway NodePort 30000). The UI NodePort 30080 does not serve `/admin/<tool>/`.
@@ -78,7 +78,7 @@ Seams: the user service HTTP API through FastAPI `TestClient` (existing pattern 
 - Manifests/gateway: `kubectl apply --dry-run=server -k k8s/infra/admin-tools`; `grep -rn nodePort k8s/infra` shows none for the four tools.
 - Deployment (after `scripts/admin-secrets.ps1`, apply, `redeploy.ps1` for `user`, `gateway`, `ui`), with curl against `localhost`:
   - the gateway starts and `/api/listings` answers while the `adminer` Service is deleted (then restored);
-  - each `/admin/<tool>/` with no cookie gives 401, with a host cookie 403, with the admin cookie 200 plus one tool asset under the prefix returning 200 with the right content type (sub-path sentinel); a tool failing this is handled per the fallback above;
+  - each `/admin/<tool>/` with no cookie gives 401, with a host cookie 403, with the admin cookie 200 plus one tool asset under the prefix returning 200 with the right content type (sub-path sentinel); a tool failing this is fixed in the gateway before moving on;
   - after the deploy, a self-registered pre-existing admin is `guest` and gets 403;
   - the `raas_token` cookie is absent from requests the tool receives (gateway debug log);
   - `/admin/grafana/api/user` as admin returns the admin email (signed in without password);
