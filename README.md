@@ -19,7 +19,7 @@ graph TD
     Client["📱 Browser"] --> Gateway["🚪 API Gateway (nginx)"]
     Gateway --> UI["🖥️ UI (Angular SSR)"]
 
-    subgraph "Services"
+    subgraph SVC["Services"]
         Gateway --> US["👤 User"]
         Gateway --> LS["📋 Listing"]
         Gateway --> MS["🖼️ Media"]
@@ -48,6 +48,19 @@ graph TD
     MS -.-> S3
 
     Gateway -- "/admin/* (admin only)" --> Tools["🛠️ Grafana · MinIO console · Adminer · Redpanda Console"]
+
+    subgraph "Observability"
+        Alloy["📜 Grafana Alloy (DaemonSet)"] -- "pod logs" --> Loki["🗄️ Loki"]
+        Prom["📊 Prometheus"]
+        Graf["📈 Grafana"]
+        Loki -.-> Graf
+        Prom -.-> Graf
+    end
+
+    SVC -. "/metrics scraped" .-> Prom
+    SVC -. "stdout" .-> Alloy
+    Loki -. "chunks" .-> S3
+    Tools -.-> Graf
 ```
 
 ### Admin tools
@@ -56,7 +69,7 @@ The gateway serves the infrastructure UIs at `/admin/grafana/`, `/admin/minio/`,
 
 ### Observability
 
-Prometheus and Grafana (metrics and dashboards), Loki and Grafana Alloy (central logs), with exporters for PostgreSQL, MongoDB, Redis and Kafka. See `k8s/infra/monitoring` and `k8s/infra/logging`.
+Prometheus scrapes each service's `/metrics` plus exporters for PostgreSQL, MongoDB, Redis and Kafka. Grafana Alloy runs on every node, tails the `raas` pod logs and ships them to Loki, which stores its chunks in MinIO. Grafana reads both Prometheus and Loki (dashboards, "RaaS Logs"). See `k8s/infra/monitoring` and `k8s/infra/logging`.
 
 ### Delivery
 
