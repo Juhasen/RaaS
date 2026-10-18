@@ -1,0 +1,15 @@
+# Apply with: kubectl apply -k k8s/infra/logging (needs MinIO from k8s/infra)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - loki.yaml
+  - alloy.yaml
+configMapGenerator:
+  - name: loki-config
+    namespace: raas
+    files:
+      - loki.yaml=loki-config.yaml
+  - name: alloy-config
+    namespace: raas
+    files:
+      - config.alloy

@@ -26,3 +26,4 @@ configMapGenerator:
       - dashboards/cluster.json
       - dashboards/services.json
       - dashboards/infra.json
+      - dashboards/logs.json
