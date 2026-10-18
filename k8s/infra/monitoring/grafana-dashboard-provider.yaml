@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: raas
+    folder: RaaS
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
