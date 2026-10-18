@@ -26,17 +26,7 @@ spec:
     requests:
       storage: 5Gi
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: minio-credentials
-  namespace: raas
-type: Opaque
-stringData:
-  # Dev-only credentials, like the inline Postgres password.
-  MINIO_ROOT_USER: raas_minio
-  MINIO_ROOT_PASSWORD: raas_minio_password
----
+# Root credentials come from Secret minio-credentials, created by scripts/admin-secrets.ps1.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

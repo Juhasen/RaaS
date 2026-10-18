@@ -8,6 +8,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { FavoritesComponent } from './pages/favorites/favorites.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
 	{
@@ -22,7 +23,12 @@ export const routes: Routes = [
 			{ path: 'listing/:id/edit', component: ListingCreateComponent },
 			{ path: 'favorites', component: FavoritesComponent },
 			{ path: 'login', component: LoginComponent },
-			{ path: 'register', component: RegisterComponent }
+			{ path: 'register', component: RegisterComponent },
+			{
+				path: 'admin/tools',
+				canActivate: [adminGuard],
+				loadComponent: () => import('./pages/admin-tools/admin-tools.component').then((m) => m.AdminToolsComponent)
+			}
 		]
 	},
 	{ path: '**', component: NotFoundComponent }

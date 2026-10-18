@@ -115,3 +115,6 @@ coverage/
 # graphify and local Claude Code settings
 graphify-out/
 .claude/settings.json
+
+# Generated tool credentials (scripts/admin-secrets.ps1)
+.passwords

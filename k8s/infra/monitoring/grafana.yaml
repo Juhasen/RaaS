@@ -1,12 +1,4 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: grafana-admin
-  namespace: raas
-stringData:
-  GF_SECURITY_ADMIN_USER: admin
-  GF_SECURITY_ADMIN_PASSWORD: admin
----
+# Admin credentials come from Secret grafana-admin, created by scripts/admin-secrets.ps1.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
