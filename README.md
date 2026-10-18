@@ -114,7 +114,7 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
     ```bash
     kubectl apply -k k8s/infra/logging
     ```
-    Optional admin tool UIs (MinIO, Adminer, Redpanda Console behind basic auth, Grafana), linked from the admin-only page `/admin/tools` in the UI; logins are in `.passwords`:
+    Optional admin tool UIs (MinIO, Adminer, Redpanda Console, Grafana), linked from the admin-only page `/admin/tools` in the UI. They are served by the gateway at `/admin/<tool>/` for the RaaS admin only (log in as the admin from `.passwords`; Grafana signs in automatically, MinIO and Adminer still ask for their own login). Run `scripts/admin-secrets.ps1` first:
     ```bash
     kubectl apply -k k8s/infra/admin-tools
     ```

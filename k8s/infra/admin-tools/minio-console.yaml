@@ -1,0 +1,13 @@
+# ClusterIP Service for the MinIO console (the base minio Service only exposes the API port).
+# Reached through the gateway at /admin/minio/ (admin only).
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-console
+  namespace: raas
+spec:
+  selector:
+    app: minio
+  ports:
+    - port: 9001
+      targetPort: 9001

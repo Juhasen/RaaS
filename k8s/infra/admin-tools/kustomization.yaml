@@ -6,4 +6,4 @@ kind: Kustomization
 resources:
   - adminer.yaml
   - redpanda-console.yaml
-  - nodeports.yaml
+  - minio-console.yaml

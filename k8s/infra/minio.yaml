@@ -55,6 +55,12 @@ spec:
           envFrom:
             - secretRef:
                 name: minio-credentials
+          env:
+            # Console is served at /admin/minio/ behind the gateway (host is the local gateway NodePort).
+            - name: MINIO_BROWSER_REDIRECT_URL
+              value: http://localhost:30000/admin/minio
+            - name: CONSOLE_SUBPATH
+              value: /admin/minio/
           ports:
             - name: api
               containerPort: 9000
