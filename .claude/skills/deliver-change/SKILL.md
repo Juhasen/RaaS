@@ -2,7 +2,6 @@
 name: deliver-change
 description: Deliver a change to RaaS end to end in an isolated git worktree - write a spec under .changes, get it attacked by an adversarial review, build it test-first, redeploy locally, then open a PR after the user approves. Covers service features, bug fixes and infrastructure work (cluster additions such as monitoring or storage). Use whenever the user asks to build, add, change or ship something in this repo, even if they do not say "deliver".
 argument-hint: <issue-url|issue-number|description> [service-name|infrastructure]
-disable-model-invocation: true
 ---
 
 # Deliver change
