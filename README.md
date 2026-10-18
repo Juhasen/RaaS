@@ -4,157 +4,130 @@
 
 [![Status: Development](https://img.shields.io/badge/Status-Development-yellow.svg)](https://github.com/)
 [![Stack: Microservices](https://img.shields.io/badge/Architecture-Microservices-blue.svg)](https://github.com/)
-[![Backend: Go/Node/Python](https://img.shields.io/badge/Backend-Polyglot-lightgrey.svg)](https://github.com/)
+[![Backend: Go/Java/Python](https://img.shields.io/badge/Backend-Polyglot-lightgrey.svg)](https://github.com/)
 
-**RaaS** is a comprehensive, distributed marketplace platform (Airbnb/OLX/Otodom clone), designed for flexible rental of any resources (cars, apartments, equipment). The project emphasizes modern design patterns, asynchronous communication, and high availability.
+**RaaS** is a distributed marketplace platform (Airbnb/OLX/Otodom clone), designed for flexible rental of any resources (cars, apartments, equipment). The project emphasizes modern design patterns, asynchronous communication, and high availability. It runs on Kubernetes, locally in namespace `raas`.
 
 ---
 
 ## 🏗️ System Architecture
 
-The system consists of independent microservices communicating with each other synchronously (REST/gRPC) and asynchronously through a message broker (Event-Bus).
+An nginx **API Gateway** is the single entry point. It serves the Angular UI, routes `/api/*` to the services and checks the user's JWT with the User Service before protected calls (`auth_request`). Services talk to each other asynchronously through **Apache Kafka**.
 
 ```mermaid
 graph TD
-    Client["📱 Client (Web/Mobile)"] --> Gateway["🚪 API Gateway"]
+    Client["📱 Browser"] --> Gateway["🚪 API Gateway (nginx)"]
+    Gateway --> UI["🖥️ UI (Angular SSR)"]
 
-    subgraph "Core Microservices"
-        Gateway --> US["👤 User Service"]
-        Gateway --> LS["📋 Listing Service"]
-        Gateway --> MS["🖼️ Media Service"]
-        Gateway --> BS["📅 Booking Service"]
-        Gateway --> RS["⭐ Review Service"]
-        Gateway --> FS["❤️ Favorites Service"]
+    subgraph "Services"
+        Gateway --> US["👤 User"]
+        Gateway --> LS["📋 Listing"]
+        Gateway --> MS["🖼️ Media"]
+        Gateway --> BS["📅 Booking"]
+        Gateway --> RS["⭐ Review"]
+        Gateway --> FS["❤️ Favorites"]
+        Gateway --> PS["💳 Payment"]
+        Gateway --> AS["📈 Analytics"]
     end
 
-    subgraph "Auxiliary Services"
-        PS["💳 Payment Service"]
-        NS["🔔 Notification Service"]
-        AS["📈 Analytics Service"]
-    end
+    NS["🔔 Notification"]
 
-    BS -- "booking.created" --> EB["📟 Event Bus (RabbitMQ/Kafka)"]
-    EB -- "notify" --> NS
-    EB -- "process" --> PS
-    EB -- "track" --> AS
+    BS & PS & US -- "events" --> EB["📟 Kafka (system.events, booking.created, user.created)"]
+    EB --> LS & MS & BS & AS & NS
 
     subgraph "Data Stores"
-        US_DB[(PostgreSQL)]
-        LS_DB[(MongoDB)]
-        MS_DB[(S3 / R2)]
-        BS_DB[(PostgreSQL)]
-        RS_DB[(PostgreSQL)]
-        FS_DB[(Redis)]
-        AS_DB[(MongoDB/PostgreSQL)]
+        PG[(PostgreSQL: one database per service)]
+        MG[(MongoDB)]
+        RD[(Redis)]
+        S3[(MinIO / S3)]
     end
 
-    US -.-> US_DB
-    LS -.-> LS_DB
-    MS -.-> MS_DB
-    BS -.-> BS_DB
-    RS -.-> RS_DB
-    FS -.-> FS_DB
-    AS -.-> AS_DB
+    US & RS & PS & FS & NS & AS & BS -.-> PG
+    LS -.-> MG
+    BS & FS -.-> RD
+    MS -.-> S3
+
+    Gateway -- "/admin/* (admin only)" --> Tools["🛠️ Grafana · MinIO console · Adminer · Redpanda Console"]
 ```
+
+### Admin tools
+
+The gateway serves the infrastructure UIs at `/admin/grafana/`, `/admin/minio/`, `/admin/adminer/` and `/admin/kafka/`. Every request is checked against the User Service (`/users/admin-check`) and only the `admin` role passes. The JWT is also stored in an HttpOnly cookie so plain links work. Grafana signs the admin in automatically; MinIO and Adminer still ask for their own login. The tools have no NodePorts. The `admin` role cannot be registered: one admin is seeded from the `user-secrets` Secret.
+
+### Observability
+
+Prometheus and Grafana (metrics and dashboards), Loki and Grafana Alloy (central logs), with exporters for PostgreSQL, MongoDB, Redis and Kafka. See `k8s/infra/monitoring` and `k8s/infra/logging`.
+
+### Delivery
+
+One GitHub Actions pipeline per service (lint, unit tests, image build, push to GHCR on `main`). Specs and validation reports for each change live in `.changes/`.
 
 ---
 
 ## 📦 Microservices Overview
 
-| Service                  | Responsibility                                                           | Technologies (Suggested)                |
-| :----------------------- | :----------------------------------------------------------------------- | :-------------------------------------- |
-| **Listing Service**      | Listing management (CRUD), categories, photos/media.                     | **Go** + MongoDB                        |
-| **Media Service**        | Upload and photo management                                              | **Go** + S3 (e.g. Cloudflare R2)        |
-| **Booking Service**      | Booking lifecycle, availability checking (Concurrency).                  | **Go** + Redis + PostgreSQL             |
-| **Payment Service**      | Payment processing, Stripe/PayPal integration, invoicing.                | **Java (Spring Boot)**                  |
-| **Review Service**       | Ratings and reviews for bookings (listing rating management).            | **Java (Spring Boot)** + PostgreSQL     |
-| **Favorites Service**    | Wishlist / watched (quick shortcut for favorite listings).               | **Java (Spring Boot)** + Redis          |
-| **Notification Service** | Sending notifications (Email, SMS, Push).                                | **Python** + SendGrid/Twilio            |
-| **User Service**         | Profile management, Auth (JWT/OAuth2) / Google Integration, permissions. | **Python** + PostgreSQL                 |
-| **Analytics Service**    | Collecting events and statistics                                         | **Python** + Kafka + MongoDB/PostgreSQL |
+| Service                  | Responsibility                                                     | Technologies                                |
+| :----------------------- | :----------------------------------------------------------------- | :------------------------------------------ |
+| **Gateway**              | Single entry point, routing, JWT check, admin tools                | nginx                                       |
+| **UI**                   | Web application                                                    | Angular (SSR on Node)                       |
+| **Listing Service**      | Listing management (CRUD), categories, availability                | **Go** + MongoDB                            |
+| **Media Service**        | Photo upload and management                                        | **Go** + S3 (MinIO locally)                 |
+| **Booking Service**      | Booking lifecycle, availability checking (concurrency), saga steps | **Go** + Redis + PostgreSQL                 |
+| **Payment Service**      | Payment processing, Stripe integration                             | **Java (Spring Boot)** + PostgreSQL         |
+| **Review Service**       | Ratings and reviews                                                | **Java (Spring Boot)** + PostgreSQL         |
+| **Favorites Service**    | Wishlist of favorite listings                                      | **Java (Spring Boot)** + Redis + PostgreSQL |
+| **Notification Service** | Notifications from events                                          | **Python** + PostgreSQL                     |
+| **User Service**         | Registration, login (JWT + cookie), roles, admin check             | **Python** + PostgreSQL                     |
+| **Analytics Service**    | Collecting events and statistics                                   | **Python** + Kafka + PostgreSQL             |
 
 ---
 
 ## ⚡ Asynchronous Communication (Event-Driven)
 
-RaaS implements the **Saga** pattern to manage distributed transactions. Example flow:
+RaaS implements the **Saga** pattern for bookings. Example flow:
 
-1.  **Booking Service** (Go) creates a booking → emits `booking.placed`.
-2.  **Payment Service** (Java) receives the event → initiates payment → emits `payment.succeeded`.
-3.  **Booking Service** updates status to `confirmed`.
-4.  **Notification Service** (Python) sends confirmation to the user.
+1.  **Booking Service** creates a booking → emits `booking.created`.
+2.  **Payment Service** receives the event → processes payment → emits `payment.succeeded` or `payment.failed` on `system.events`.
+3.  **Booking Service** updates the status to `confirmed` (or cancels it).
+4.  **Notification Service** and **Analytics Service** consume the events (notification to the user, statistics).
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Backend:** Java (Spring Boot), Go (Golang), Python
+- **Backend:** Java (Spring Boot), Go, Python
 - **Frontend:** Angular
-- **Databases:** PostgreSQL, MongoDB, Redis (Cache/Distributed Lock), S3
-- **Communication:** Apache Kafka (Event Bus)
-- **DevOps:** Docker, Kubernetes
+- **Databases:** PostgreSQL, MongoDB, Redis, S3-compatible storage (MinIO)
+- **Communication:** Apache Kafka (event bus), nginx gateway
+- **DevOps:** Docker, Kubernetes (Kustomize), GitHub Actions, Prometheus, Grafana, Loki
 
 ---
 
-## 🚀 Quick Start (Development)
+## 🚀 Quick Start
 
-**Local Kubernetes Workflow** (Recommended)
+**Needs:** Docker Desktop with Kubernetes enabled, `kubectl`, PowerShell. Run from the repository root.
 
-1.  Start your local Kubernetes cluster (kubeadm inside Docker Desktop).
-2.  Generate the tool credentials (random passwords, saved to the git-ignored `.passwords` file, Secrets created in the cluster), then deploy the infrastructure layer:
-    ```bash
-    powershell -File scripts/admin-secrets.ps1
-    kubectl apply -f k8s/infra/
-    ```
-    Optional monitoring (Prometheus, Grafana, exporters); open Grafana with `kubectl -n raas port-forward svc/grafana 3000`:
-    ```bash
-    kubectl apply -k k8s/infra/monitoring
-    ```
-    Optional central logs (Loki and Grafana Alloy, chunks stored in MinIO, needs the infra layer above; view in Grafana, dashboard "RaaS Logs"):
-    ```bash
-    kubectl apply -k k8s/infra/logging
-    ```
-    Optional admin tool UIs (MinIO, Adminer, Redpanda Console, Grafana), linked from the admin-only page `/admin/tools` in the UI. They are served by the gateway at `/admin/<tool>/` for the RaaS admin only (log in as the admin from `.passwords`; Grafana signs in automatically, MinIO and Adminer still ask for their own login). Run `scripts/admin-secrets.ps1` first:
-    ```bash
-    kubectl apply -k k8s/infra/admin-tools
-    ```
-3.  Deploy your domain-specific application track (or all of them):
+```powershell
+powershell -File scripts/build-and-start.ps1
+```
 
-    ```bash
-    # Go Developer Track
-    kubectl apply -f k8s/apps/go/
+This builds every image, creates the credentials (`.passwords`, git-ignored, plus the cluster Secrets), deploys the infrastructure and all services, and waits until they are ready. Then open <http://localhost:30000>.
 
-    # Java Developer Track
-    kubectl apply -f k8s/apps/java/
+Optional layers, as switches on the same command:
 
-    # Python Developer Track
-    kubectl apply -f k8s/apps/python/
-    ```
+| Switch        | Adds                                                                                            |
+| :------------ | :---------------------------------------------------------------------------------------------- |
+| `-Monitoring` | Prometheus, Grafana, exporters                                                                  |
+| `-Logging`    | Loki and Grafana Alloy (chunks go to MinIO, which the script always deploys)                    |
+| `-AdminTools` | Adminer and Redpanda Console; all tools open from `/admin/tools` after logging in as the admin  |
 
-    _Alternatively, you can run the bootstrap script to deploy everything:_
+Log in as the admin with `RAAS_ADMIN_EMAIL` and `RAAS_ADMIN_PASSWORD` from `.passwords`.
 
-    ```bash
-    ./scripts/start-local-k8s.sh
-    ```
+**Day to day**
 
-**Docker Compose Workflow** (Legacy)
+```powershell
+powershell -File scripts/redeploy.ps1 -Service user   # rebuild one service and restart it
+powershell -File scripts/start-local-k8s.ps1          # redeploy manifests without rebuilding images
+```
 
-1.  Start infrastructure and services:
-    ```bash
-    docker-compose up -d
-    ```
-2.  Check services status:
-    ```bash
-    docker-compose ps
-    ```
-
----
-
-## 👨‍💻 For Developers
-
-The project is ideal for learning:
-
-- Microservices architecture and distributed transactions.
-- Event-Driven Design systems.
-- Database query optimization and search engines (NoSQL vs SQL).
-- Containerization and orchestration.
+Per-service build, test and deploy commands are in each service's `kubernetes.md` and in `CLAUDE.md`.
