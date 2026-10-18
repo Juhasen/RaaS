@@ -58,6 +58,8 @@ export class AuthService {
   }
   
   logout(): void {
+    // Clears the HttpOnly cookie the admin tools rely on; the local token goes regardless of the result.
+    this.http.post('/api/users/logout', null).subscribe({ error: () => undefined });
     this.clearAuth();
     this.router.navigate(['/login']);
   }

@@ -9,10 +9,10 @@ describe('AdminToolsComponent', () => {
     const links = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
 
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      'http://localhost:30901',
-      'http://localhost:30090',
-      'http://localhost:30808',
-      'http://localhost:30300'
+      '/admin/minio/',
+      '/admin/adminer/',
+      '/admin/kafka/',
+      '/admin/grafana/'
     ]);
     expect(INFRA_TOOLS.map((t) => t.name)).toEqual(['MinIO', 'Postgres (Adminer)', 'Kafka (Redpanda Console)', 'Grafana']);
     for (const a of links) {
