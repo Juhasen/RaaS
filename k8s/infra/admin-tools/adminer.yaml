@@ -37,10 +37,8 @@ metadata:
   name: adminer
   namespace: raas
 spec:
-  type: NodePort
   selector:
     app: adminer
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30090

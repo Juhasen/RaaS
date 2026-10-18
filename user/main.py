@@ -1,7 +1,7 @@
 import os
 import logging
 from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from contextlib import asynccontextmanager
@@ -32,7 +32,22 @@ try:
 except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
 
-app = FastAPI(title="User Service", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Fail startup instead of running with no admin or with leftover self-registered admins.
+    email, password = os.getenv("ADMIN_EMAIL"), os.getenv("ADMIN_PASSWORD")
+    if not email or not password:
+        raise RuntimeError("ADMIN_EMAIL and ADMIN_PASSWORD must be set")
+    session = postgres.SessionLocal()
+    try:
+        seed_admin(session, email, password)
+    except IntegrityError:
+        session.rollback()  # another replica seeded at the same time
+    finally:
+        session.close()
+    yield
+
+app = FastAPI(title="User Service", version="1.0.0", lifespan=lifespan)
 
 Instrumentator().instrument(app).expose(app)
 
@@ -44,11 +59,13 @@ def get_db():
     finally:
         session.close()
 
-JWT_SECRET = os.getenv("JWT_SECRET", "raas-secret-key-12345")
+JWT_SECRET = os.environ["JWT_SECRET"]  # no fallback: a known default lets anyone forge admin tokens
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+COOKIE_NAME = "raas_token"
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
@@ -60,11 +77,9 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-) -> User:
-    token = credentials.credentials
+def user_from_token(token: str | None, db: Session) -> User:
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id: str = payload.get("sub")
@@ -77,6 +92,22 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    return user_from_token(credentials.credentials if credentials else None, db)
+
+async def get_admin_check_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    # Only the gateway auth_request uses the cookie (plain link clicks cannot send a header).
+    # Header wins. Every other endpoint stays header-only, so it is not exposed to CSRF.
+    token = credentials.credentials if credentials else request.cookies.get(COOKIE_NAME)
+    return user_from_token(token, db)
 
 # Health check endpoint
 @app.get("/health")
@@ -92,6 +123,25 @@ async def health():
 async def root():
     """Root endpoint"""
     return {"message": "User Service is running"}
+
+def seed_admin(db: Session, email: str, password: str):
+    """Make `email` the only admin. Idempotent; see .changes/infrastructure/admin-tools-sso/spec.md."""
+    if len(password) < 8:
+        raise ValueError("ADMIN_PASSWORD must be at least 8 characters")
+    for u in db.query(User).filter(User.role == "admin", User.email != email).all():
+        logger.warning(f"Demoting admin {u.email} to guest")
+        u.role = "guest"
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        db.add(User(id=str(uuid.uuid4()), email=email, password_hash=_hash(password), role="admin"))
+    elif user.role != "admin":
+        logger.error(f"{email} exists with role {user.role}; not promoting it to admin")
+    elif not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
+        user.password_hash = _hash(password)
+    db.commit()
+
+def _hash(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 # User Creation Endpoint
 @app.post("/users", response_model=UserResponse, status_code=201)
@@ -154,6 +204,7 @@ async def register_user(
 @app.post("/users/login", response_model=TokenResponse)
 async def login_user(
     request: UserLoginRequest,
+    response: Response,
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return access token"""
@@ -176,6 +227,10 @@ async def login_user(
         )
         
         logger.info(f"User logged in successfully: {user.id}")
+        response.set_cookie(
+            COOKIE_NAME, access_token, max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            httponly=True, samesite="lax", secure=COOKIE_SECURE, path="/",
+        )
         return TokenResponse(access_token=access_token, user=user)
         
     except HTTPException:
@@ -183,6 +238,22 @@ async def login_user(
     except Exception as e:
         logger.error(f"Error during login: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during login")
+
+@app.post("/users/logout", status_code=204)
+async def logout_user(response: Response):
+    """Clear the auth cookie"""
+    response.delete_cookie(COOKIE_NAME, path="/")
+
+
+# Gateway auth_request target for the admin tools: 200 only for admins (role read from the DB row).
+# Declared before /users/{user_id}.
+@app.get("/users/admin-check")
+async def admin_check(response: Response, current_user: User = Depends(get_admin_check_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    response.headers["X-Auth-User"] = current_user.email
+    return {"status": "ok"}
+
 
 # Get Current User Info
 @app.get("/users/me", response_model=UserResponse)

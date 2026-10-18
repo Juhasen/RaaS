@@ -19,6 +19,20 @@ spec:
           envFrom:
             - secretRef:
                 name: grafana-admin
+          env:
+            # Served at /admin/grafana/ behind the gateway, which sets X-WEBAUTH-USER for admins only. Root URL is the local gateway origin; change it for another cluster.
+            - name: GF_SERVER_ROOT_URL
+              value: "http://localhost:30000/admin/grafana/"
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
+            - name: GF_AUTH_PROXY_ENABLED
+              value: "true"
+            - name: GF_AUTH_PROXY_HEADER_NAME
+              value: X-WEBAUTH-USER
+            - name: GF_AUTH_PROXY_AUTO_SIGN_UP
+              value: "true"
+            - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
+              value: Admin
           ports:
             - containerPort: 3000
           resources:
