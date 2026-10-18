@@ -10,7 +10,7 @@ Run on the live Docker Desktop cluster (context `docker-desktop`, namespace `raa
 | Grafana provisioning | Grafana API `/api/datasources`, `/api/search?type=dash-db` | 1 data source (Prometheus, default), 3 dashboards in folder `RaaS`: RaaS Cluster, RaaS Infra, RaaS Services |
 | Dashboard queries | every `expr` of the three dashboards run against Prometheus | all return `success`; see below for the two empty ones |
 | Go tests | `go vet ./...`, `go test ./...` in `listing/`, `media/`, `booking/` | pass |
-| Python test | `pytest test_metrics.py` in `user/` | pass (run earlier in the delivery) |
+| Python test | `pytest` in `user/` inside `python:3.11-slim` with `pip install -r requirements.txt pytest` (same as CI) | pass after adding `httpx` to requirements; it failed in CI before (`No module named httpx`) |
 | Java | images build in Docker (`mvn package`); `payment`, `review`, `favorites` targets `up`; `jvm_memory_used_bytes` and `http_server_requests_seconds_count` return series | pass (no Java test directory exists) |
 | Media with the #41 image | media target | `down` while the MinIO branch image runs (it has no `/metrics`); `up` with this branch's image, 41 `media_*` series |
 
