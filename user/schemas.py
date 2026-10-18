@@ -6,7 +6,7 @@ class UserCreateRequest(BaseModel):
     """Schema for creating a new user"""
     email: EmailStr
     password: str = Field(..., min_length=8)
-    role: str = Field(default="guest", pattern="^(guest|host|admin)$")
+    role: str = Field(default="guest", pattern="^(guest|host)$")
 
 class UserLoginRequest(BaseModel):
     """Schema for user login"""
