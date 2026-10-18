@@ -60,6 +60,6 @@ One file, `k8s/infra/minio.yaml`: PV, PVC, Secret (root credentials), Deployment
 
 ### Adversarial review outcome
 
-Accepted: PV/PVC pinned with `storageClassName: ""` + `volumeName` and `type: DirectoryOrCreate` so the hostPath PV really binds; Binding check added. Deviations from postgres (Recreate strategy, probes) are deliberate. Image tag `RELEASE.2025-04-22T22-12-26Z` is pinned because upstream stopped publishing community images; it was not pullable during this run (Docker down).
+Accepted: PV/PVC pinned with `storageClassName: ""` + `volumeName` and `type: DirectoryOrCreate` so the hostPath PV really binds; Binding check added. Deviations from postgres (Recreate strategy, probes) are deliberate. Image: the originally chosen tag `RELEASE.2025-04-22T22-12-26Z` does not exist upstream any more; the Deployment pins the Chainguard build `cgr.dev/chainguard/minio` by digest (RELEASE.2026-09-22T19-25-18Z) and runs as root because of the hostPath.
 Noted: `namespace.yaml` sorts after `minio.yaml` in `apply -R`; on a fresh cluster apply the namespace first or apply twice (same as every other infra file). `media` originally kept using R2 (superseded: wired in this change).
 Rejected: startup probe, extra probe tuning, CPU limit, sizing justification (YAGNI for a local dev store).

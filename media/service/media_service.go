@@ -77,7 +77,7 @@ type MediaService struct {
 func NewMediaService(repo repository.MediaRepository, cfg *Config, kafkaBrokers []string, kafkaTopic string) *MediaService {
 	s3Client := newS3Client(cfg)
 	if s3Client != nil {
-		bucketReady(s3Client, cfg.S3Bucket)
+		go bucketReady(s3Client, cfg.S3Bucket) // async: blocking here outlasts the liveness probe
 	} else {
 		log.Println("S3 settings not fully provided; running in local fallback directory mode")
 	}

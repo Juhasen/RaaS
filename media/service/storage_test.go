@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestLoadConfig_S3Env(t *testing.T) {
@@ -77,5 +78,17 @@ func TestEnsureBucket_CreatesWithPathStyleAndPublicPolicy(t *testing.T) {
 		if (*calls)[i] != w {
 			t.Errorf("call %d = %q, want %q (path-style bucket in path)", i, (*calls)[i], w)
 		}
+	}
+}
+
+// Startup must not block on an unreachable S3, or the liveness probe kills the pod.
+func TestNewMediaService_DoesNotBlockOnUnreachableS3(t *testing.T) {
+	cfg := &Config{S3Endpoint: "http://127.0.0.1:1", S3AccessKey: "ak", S3SecretKey: "sk", S3Bucket: "b", S3Region: "us-east-1"}
+	done := make(chan struct{})
+	go func() { NewMediaService(nil, cfg, nil, ""); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("NewMediaService blocked waiting for S3")
 	}
 }

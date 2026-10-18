@@ -54,9 +54,13 @@ spec:
       labels:
         app: minio
     spec:
+      # hostPath dir is root-owned and fsGroup does not apply to hostPath; image default user is 65532.
+      securityContext:
+        runAsUser: 0
       containers:
         - name: minio
-          image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+          # Upstream no longer publishes images; Chainguard free build = RELEASE.2026-09-22T19-25-18Z
+          image: cgr.dev/chainguard/minio@sha256:709099319add48dfb44aa596a7070d3ddd8dd04d7ae881765719aec29df9e510
           args: ["server", "/data", "--console-address", ":9001"]
           envFrom:
             - secretRef:
