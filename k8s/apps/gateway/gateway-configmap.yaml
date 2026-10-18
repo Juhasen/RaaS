@@ -248,6 +248,12 @@ data:
             proxy_set_header X-Forwarded-Prefix /api/favorites;
         }
 
+    # 9b. Media files: browser-reachable, same origin, works in any environment.
+    location /media-files/ {
+        rewrite ^/media-files/(.*)$ /raas-media-bucket/$1 break;
+        proxy_pass http://minio.raas.svc.cluster.local:9000;
+    }
+
         # 10. UI Service Fallback
         location / {
             proxy_pass http://ui-service.raas.svc.cluster.local:80;
