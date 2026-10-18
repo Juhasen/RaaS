@@ -41,11 +41,13 @@ spec:
                 secretKeyRef:
                   name: payment-env
                   key: STRIPE_API_KEY
+                  optional: true
             - name: STRIPE_PUBLISHABLE_KEY
               valueFrom:
                 secretKeyRef:
                   name: payment-env
                   key: STRIPE_PUBLISHABLE_KEY
+                  optional: true
 ---
 apiVersion: v1
 kind: Service
