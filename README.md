@@ -19,7 +19,7 @@ graph TD
     Client["📱 Browser"] --> Gateway["🚪 API Gateway (nginx)"]
     Gateway --> UI["🖥️ UI (Angular SSR)"]
 
-    subgraph "Services"
+    subgraph SVC["Services"]
         Gateway --> US["👤 User"]
         Gateway --> LS["📋 Listing"]
         Gateway --> MS["🖼️ Media"]
@@ -57,8 +57,8 @@ graph TD
         Prom -.-> Graf
     end
 
-    Services -. "/metrics scraped" .-> Prom
-    Services -. "stdout" .-> Alloy
+    SVC -. "/metrics scraped" .-> Prom
+    SVC -. "stdout" .-> Alloy
     Loki -. "chunks" .-> S3
     Tools -.-> Graf
 ```
