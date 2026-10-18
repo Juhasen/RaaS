@@ -31,6 +31,21 @@ spec:
               value: "us-east-1"
             - name: S3_BUCKET
               value: "raas-media-bucket"
+            - name: S3_ENDPOINT
+              value: "http://minio:9000"
+            # Browser-reachable base URL; needs: kubectl -n raas port-forward svc/minio 9000:9000
+            - name: S3_PUBLIC_URL
+              value: "http://localhost:9000/raas-media-bucket"
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: MINIO_ROOT_USER
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: MINIO_ROOT_PASSWORD
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
