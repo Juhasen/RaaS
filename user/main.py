@@ -1,5 +1,6 @@
 import os
 import logging
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -32,6 +33,8 @@ except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
 
 app = FastAPI(title="User Service", version="1.0.0")
+
+Instrumentator().instrument(app).expose(app)
 
 # Dependency to get database session
 def get_db():

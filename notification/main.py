@@ -6,6 +6,7 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 import uuid
@@ -30,6 +31,8 @@ except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
 
 app = FastAPI(title="Notification Service", version="1.0.0")
+
+Instrumentator().instrument(app).expose(app)
 
 # Dependency to get database session
 def get_db():

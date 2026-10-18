@@ -1,0 +1,28 @@
+# Apply with: kubectl apply -k k8s/infra/monitoring
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - prometheus.yaml
+  - kube-state-metrics.yaml
+  - node-exporter.yaml
+  - exporters.yaml
+  - grafana.yaml
+configMapGenerator:
+  - name: prometheus-config
+    namespace: raas
+    files:
+      - prometheus.yml
+  - name: grafana-datasources
+    namespace: raas
+    files:
+      - grafana-datasources.yaml
+  - name: grafana-dashboard-provider
+    namespace: raas
+    files:
+      - grafana-dashboard-provider.yaml
+  - name: grafana-dashboards
+    namespace: raas
+    files:
+      - dashboards/cluster.json
+      - dashboards/services.json
+      - dashboards/infra.json

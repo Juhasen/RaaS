@@ -5,3 +5,5 @@ python-dotenv==1.0.0
 psycopg2-binary==2.9.9
 sqlalchemy==2.0.23
 kafka-python==2.0.2
+prometheus-fastapi-instrumentator==6.1.0
+prometheus-client==0.26.0

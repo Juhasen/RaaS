@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/bson"
@@ -69,6 +70,9 @@ func main() {
 
 	// 4. Set up router
 	e := echo.New()
+
+	e.Use(echoprometheus.NewMiddleware("listing"))
+	e.GET("/metrics", echoprometheus.NewHandler())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})

@@ -16,6 +16,7 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
@@ -106,6 +107,9 @@ func main() {
 
 	// 6. Set up Echo router
 	e := echo.New()
+
+	e.Use(echoprometheus.NewMiddleware("booking"))
+	e.GET("/metrics", echoprometheus.NewHandler())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})

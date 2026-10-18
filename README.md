@@ -105,6 +105,10 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
     ```bash
     kubectl apply -f k8s/infra/
     ```
+    Optional monitoring (Prometheus, Grafana, exporters); open Grafana with `kubectl -n raas port-forward svc/grafana 3000`:
+    ```bash
+    kubectl apply -k k8s/infra/monitoring
+    ```
 3.  Deploy your domain-specific application track (or all of them):
 
     ```bash
