@@ -68,7 +68,7 @@
   {
    "id": 3,
    "type": "timeseries",
-   "title": "Root disk used",
+   "title": "Data disk used (Docker VM, /var/lib)",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
@@ -88,7 +88,7 @@
    "targets": [
     {
      "refId": "A",
-     "expr": "1 - node_filesystem_avail_bytes{mountpoint=\"/\"}/node_filesystem_size_bytes{mountpoint=\"/\"}",
+     "expr": "1 - node_filesystem_avail_bytes{mountpoint=\"/var/lib\"}/node_filesystem_size_bytes{mountpoint=\"/var/lib\"}",
      "legendFormat": "{{device}}"
     }
    ]
