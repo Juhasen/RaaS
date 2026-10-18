@@ -12,9 +12,11 @@ discovery.kubernetes "pods" {
 discovery.relabel "pods" {
   targets = discovery.kubernetes.pods.targets
 
+  // Match the pod name too, so a pod without the app label cannot start a log-about-logs loop.
   rule {
-    source_labels = ["__meta_kubernetes_pod_label_app"]
-    regex         = "loki|alloy"
+    source_labels = ["__meta_kubernetes_pod_label_app", "__meta_kubernetes_pod_name"]
+    separator     = ";"
+    regex         = "(loki|alloy);.*|.*;(loki|alloy)-.*"
     action        = "drop"
   }
   rule {
