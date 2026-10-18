@@ -15,26 +15,31 @@ export class AuthService {
   
   currentUser = computed(() => this.currentUserSignal());
   isAuthenticated = computed(() => this.currentUserSignal() !== null);
+
+  // Settles once the initial /users/me lookup is done (or skipped), so guards can wait for it.
+  userLoaded: Promise<void>;
   
   constructor() {
-    this.loadCurrentUser();
+    this.userLoaded = this.loadCurrentUser();
   }
   
-  private loadCurrentUser(): void {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        // Fetch current user details from API
-        this.http.get<User>('/api/users/me').subscribe({
-          next: (user) => {
-            this.currentUserSignal.set(user);
-          },
-          error: () => {
-            this.clearAuth();
-          }
-        });
-      }
+  private loadCurrentUser(): Promise<void> {
+    if (typeof window === 'undefined' || !localStorage.getItem('access_token')) {
+      return Promise.resolve();
     }
+    // Fetch current user details from API
+    return new Promise((resolve) => {
+      this.http.get<User>('/api/users/me').subscribe({
+        next: (user) => {
+          this.currentUserSignal.set(user);
+          resolve();
+        },
+        error: () => {
+          this.clearAuth();
+          resolve();
+        }
+      });
+    });
   }
   
   login(credentials: { email: string; password: string }): Observable<TokenResponse> {

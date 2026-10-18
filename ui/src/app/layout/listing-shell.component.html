@@ -9,6 +9,11 @@
     
     <div class="flex items-center gap-4">
       @if (authService.isAuthenticated()) {
+        @if (authService.currentUser()?.role === 'admin') {
+          <a routerLink="/admin/tools" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+            Admin
+          </a>
+        }
         @if (authService.currentUser()?.role === 'host') {
           <a routerLink="/listing/create" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors" title="Create Listing">
             + New Listing
