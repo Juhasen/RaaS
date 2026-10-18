@@ -46,14 +46,14 @@ Serve the tools through the gateway on the UI's origin at `/admin/{grafana,minio
 - Base paths per tool:
   - Grafana: `GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/admin/grafana/`, `GF_SERVER_SERVE_FROM_SUB_PATH=true`, `GF_AUTH_PROXY_ENABLED=true`, `GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER`, `GF_AUTH_PROXY_AUTO_SIGN_UP=true`, `GF_USERS_AUTO_ASSIGN_ORG_ROLE=Admin`.
   - MinIO console: gateway strips the prefix, `MINIO_BROWSER_REDIRECT_URL` points at `/admin/minio`.
-  - Redpanda Console: `SERVER_BASEPATH=/admin/kafka` (exact keys for the pinned v3.3.0 verified at implementation).
+  - Redpanda Console: v3.3.0 ignores `SERVER_BASEPATH` env; a ConfigMap `redpanda-console-config` (`CONFIG_FILEPATH`) sets `server.basePath: /admin/kafka`. Console strips the prefix itself, so the gateway keeps it (verified).
   - Adminer: no base-path setting; the gateway strips the prefix and relative links are checked in the deployment check.
   - Every tool must work under its sub-path (user decision: no dropping). If a setting is not enough, make it work in the gateway (`sub_filter` rewrite of absolute links, `proxy_redirect`, cookie path) and keep it documented in the gateway block.
 - Grafana's own login stays enabled and its Service is ClusterIP only. Accepted risk: any pod in the cluster can still send `X-WEBAUTH-USER` to `grafana:3000` (no NetworkPolicy, and Docker Desktop does not enforce one); the same holds for Console. Fine for the local single-tenant cluster; a NetworkPolicy restricting these Services to the gateway is a required follow-up before a cloud deploy. The proxied identity is an Org Admin login `admin@raas.local`, not Grafana server admin; the `grafana-admin` credentials stay the server-admin path. Grafana's readiness probe path is re-checked under the sub-path and adjusted if it breaks.
 - Users logged in before the deploy have no cookie: they must log in again. Logout is a fire-and-forget POST; a failed call leaves the cookie valid until its 24h expiry (no revocation, same as the JWT today).
-- Supported origin: the Traefik ingress on `localhost:80` (and gateway NodePort 30000). The UI NodePort 30080 does not serve `/admin/<tool>/`.
+- Supported origin: gateway NodePort `localhost:30000` (nothing on this machine's `localhost:80` reaches the cluster). `MINIO_BROWSER_REDIRECT_URL` is therefore `http://localhost:30000/admin/minio`; a cloud deploy changes it. The UI NodePort 30080 does not serve `/admin/<tool>/`.
 - MinIO and Adminer keep their own login (user decision): the gateway gate keeps non-admins out but a second password remains. Redpanda Console has no login, so the gate is its only protection.
-- The Traefik ingress already forwards `/` to the gateway; unchanged.
+- Ingress unchanged.
 
 ### cluster (`k8s/infra/`)
 
@@ -108,3 +108,9 @@ Seams: the user service HTTP API through FastAPI `TestClient` (existing pattern 
 
 Accepted: leftover self-registered admins (demoted at startup); seed collision and password rotation; gateway crashloop on missing upstream (resolver + variables); `nginx -t` AC dropped; `JWT_SECRET` vs existing test and CI; Grafana prefix, Host and probe; cookie stripped upstream; `/admin/<tool>` slash redirect; `auto_error=False` and route order; body size and buffering; default.conf vs configmap drift stated; no pruning on `kubectl apply -k`; spoofed header AC; sub-path sentinel AC; supported origin; re-login after deploy; Grafana trust risk stated as accepted.
 Rejected: `auth_request` caching (YAGNI, single admin user, revisit if the user service shows load); login rate limiting (random 24-char password, separate concern); deny-all `/admin/*` (would break the UI route `/admin/tools`); reconciling old default.conf/configmap drift (out of scope).
+
+### Implementation deviations
+
+- Origin is `localhost:30000`, not the ingress on port 80 (see Implementation Decisions).
+- Console base path via a config file, gateway keeps the prefix for `/admin/kafka/` (the other three strip it, Grafana keeps it).
+- The seeded admin email comes from `RAAS_ADMIN_EMAIL` in `.passwords`; the operator's existing file already had `admin@example.com`, which is therefore the seeded admin.
