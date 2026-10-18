@@ -106,7 +106,7 @@ Mark a level `n/a` with a reason when the change does not need it (an infra chan
 
 ## 7. Review and approval
 
-Call the Skill tool with `code-review` on the branch and fix what it raises. Then summarize what changed, point to `validation.md`, and any spec deviations, and wait for the user to approve. Do not push or open a PR without approval.
+Call the Skill tool with `code-review` and pass an explicit target in `args`: the branch, the worktree path and `git diff origin/main...<prefix>/<name>`, and say to ignore uncommitted changes in the main checkout. Never call it with no argument: the session cwd (and the shell cwd after every command) is the main checkout, so a bare call reviews the wrong files. When the report arrives, compare its file paths with `git diff --name-only origin/main...HEAD` run in the worktree; if they differ, discard it and run the review again. Fix what it raises. Then summarize what changed, point to `validation.md`, and any spec deviations, and wait for the user to approve. Do not push or open a PR without approval.
 
 ## 8. Push and PR
 
