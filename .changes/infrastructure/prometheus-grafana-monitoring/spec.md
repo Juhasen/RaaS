@@ -4,7 +4,7 @@ Issue: #42. Source: `.changes/proposals/observability.md`, section 1.
 
 ## Problem Statement
 
-The cluster has no metrics. An operator cannot see whether pods, nodes, the eleven services, Kafka, Redis, Postgres or MongoDB are healthy without running `kubectl` by hand.
+The cluster has no metrics. An operator cannot see whether pods, nodes, the nine backend services, Kafka, Redis, Postgres or MongoDB are healthy without running `kubectl` by hand.
 
 ## Solution
 
@@ -58,4 +58,12 @@ The local cluster must be running for the deployment and manual levels. If it is
 ## Further Notes
 
 - The `grilling` step was not run interactively; the delegating request fixed the scope and asked for the Helm-vs-manifests decision to be made here.
-- Review findings and how they were handled are listed below.
+- Adversarial review handled:
+  - Accepted: Java has no test dir and no Maven on the dev machine, so Java is verified at deployment level only (`curl /actuator/prometheus` contains `jvm_memory_used_bytes`). Go test covers the library contract only (honest limit); wiring is proven by the deployment check.
+  - Accepted: pinned `prometheus-fastapi-instrumentator==6.1.0` and `prometheus-client==0.26.0` (resolve cleanly with fastapi 0.104.1 / starlette 0.27); `echo-contrib` v0.50.1 added, echo stays v4.15.1.
+  - Accepted: Mongo URI uses `authSource=admin`; Postgres exporter auto-discovers databases; node-exporter `/` mount uses `HostToContainer`; Prometheus retention 24h and memory limits on Prometheus and Grafana; Java `percentiles-histogram` on and an `application` tag so dashboards group by service; Go dashboard queries match `<service>_request_duration_seconds` by regex because echoprometheus prefixes the service name.
+  - Accepted: target table is `k8s/infra/monitoring/prometheus.yml` (Java `/actuator/prometheus`, Go and Python `/metrics`, all `<name>-service:80`). Expected targets: 9 services + kube-state-metrics, node-exporter, 4 exporters, prometheus = 16. Allow 2-3 minutes after deploy for Spring startup.
+  - Corrected claim: services are NodePort, so metrics are reachable on host NodePorts as well as in-cluster; the gateway has no route for them (catch-all goes to the UI). Acceptable locally.
+  - Known limits: node-exporter reports the Docker Desktop VM, not the Windows host. Kafka lag panels show data only once consumer groups exist; `kafka_brokers == 1` is the pass condition. Exporter credentials are inline, like existing infra manifests.
+  - Rejected: splitting the change (the issue asks for all of it); resource requests (limits only, local cluster); Secrets for exporter DSNs (same plaintext already in `postgres.yaml`, `mongodb.yaml`, `configmap.yaml`).
+  - Rollback: `kubectl delete -k k8s/infra/monitoring`.

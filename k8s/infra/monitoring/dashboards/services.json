@@ -88,7 +88,7 @@
    "targets": [
     {
      "refId": "A",
-     "expr": "sum by (host) (rate(echo_request_duration_seconds_count[5m]))",
+     "expr": "sum by (host) (rate({job=\"go-services\",__name__=~\".+_request_duration_seconds_count\"}[5m]))",
      "legendFormat": "{{host}}"
     }
    ]

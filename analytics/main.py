@@ -3,6 +3,7 @@ import logging
 import threading
 import urllib.request
 import json
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 import uuid
@@ -27,6 +28,8 @@ except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
 
 app = FastAPI(title="Analytics Service", version="1.0.0")
+
+Instrumentator().instrument(app).expose(app)
 
 # Kafka consumer setup
 kafka_consumers = {}

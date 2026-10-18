@@ -18,9 +18,12 @@ spec:
           args:
             - --config.file=/etc/prometheus/prometheus.yml
             - --storage.tsdb.path=/prometheus
-            - --storage.tsdb.retention.time=7d
+            - --storage.tsdb.retention.time=24h
           ports:
             - containerPort: 9090
+          resources:
+            limits:
+              memory: 512Mi
           readinessProbe:
             httpGet:
               path: /-/ready

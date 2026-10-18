@@ -10,6 +10,7 @@ import (
 	"github.com/Juhasen/RaaS/media/handlers"
 	"github.com/Juhasen/RaaS/media/repository"
 	"github.com/Juhasen/RaaS/media/service"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -52,6 +53,9 @@ func main() {
 
 	// 5. Setup Router
 	e := echo.New()
+
+	e.Use(echoprometheus.NewMiddleware("media"))
+	e.GET("/metrics", echoprometheus.NewHandler())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})

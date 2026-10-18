@@ -29,6 +29,9 @@ spec:
                 name: grafana-admin
           ports:
             - containerPort: 3000
+          resources:
+            limits:
+              memory: 256Mi
           readinessProbe:
             httpGet:
               path: /api/health
