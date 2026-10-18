@@ -112,7 +112,6 @@ coverage/
 # Agents
 .agents/
 
-
 # graphify and local Claude Code settings
 graphify-out/
 .claude/settings.json
