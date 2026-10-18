@@ -101,8 +101,9 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
 **Local Kubernetes Workflow** (Recommended)
 
 1.  Start your local Kubernetes cluster (kubeadm inside Docker Desktop).
-2.  Deploy the infrastructure layer:
+2.  Generate the tool credentials (random passwords, saved to the git-ignored `.passwords` file, Secrets created in the cluster), then deploy the infrastructure layer:
     ```bash
+    powershell -File scripts/admin-secrets.ps1
     kubectl apply -f k8s/infra/
     ```
     Optional monitoring (Prometheus, Grafana, exporters); open Grafana with `kubectl -n raas port-forward svc/grafana 3000`:
@@ -112,6 +113,10 @@ RaaS implements the **Saga** pattern to manage distributed transactions. Example
     Optional central logs (Loki and Grafana Alloy, chunks stored in MinIO, needs the infra layer above; view in Grafana, dashboard "RaaS Logs"):
     ```bash
     kubectl apply -k k8s/infra/logging
+    ```
+    Optional admin tool UIs (MinIO, Adminer, Redpanda Console behind basic auth, Grafana), linked from the admin-only page `/admin/tools` in the UI; logins are in `.passwords`:
+    ```bash
+    kubectl apply -k k8s/infra/admin-tools
     ```
 3.  Deploy your domain-specific application track (or all of them):
 

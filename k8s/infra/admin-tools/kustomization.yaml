@@ -1,0 +1,9 @@
+# Apply with: kubectl apply -k k8s/infra/admin-tools
+# Run scripts/admin-secrets.ps1 first (creates the credentials Secrets).
+# Needs the base infra (postgres, kafka, minio) and monitoring (grafana) for their buttons to work.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - adminer.yaml
+  - redpanda-console.yaml
+  - nodeports.yaml
