@@ -118,3 +118,5 @@ graphify-out/
 
 # Generated tool credentials (scripts/admin-secrets.ps1)
 .passwords
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
