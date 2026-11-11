@@ -1,0 +1,8 @@
+appId: com.raas.app
+---
+- launchApp
+- tapOn:
+    id: "notification-bell"
+- assertVisible: "Notifications"
+- assertVisible:
+    text: ".*(CONFIRMED|REJECTED|No notifications yet).*"

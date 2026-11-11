@@ -1,0 +1,230 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "R Rent as a Service" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: R
+        - generic [ref=e8]: Rent as a Service
+      - generic [ref=e9]:
+        - link "B" [ref=e32] [cursor=pointer]:
+          - /url: /listing/manage
+        - generic [ref=e33]:
+          - button "Notifications" [expanded] [active] [ref=e34] [cursor=pointer]
+          - region "Notifications" [ref=e351]:
+            - list [ref=e354]:
+              - listitem [ref=e355]:
+                - paragraph [ref=e356]: "Hello, Unfortunately, your booking (ID: cefdc96c-6a62-4e3f-a022-8ed8fffccaeb) was REJECTED by the host. Please try booking another space or different dates."
+                - generic [ref=e357]: 11/11/26, 1:09 AM
+              - listitem [ref=e358]:
+                - paragraph [ref=e359]: "Hello, Your booking (ID: 557beca4-f2c0-4ee9-9920-09f327c9ce55) has been CONFIRMED by the host! Enjoy your stay."
+                - generic [ref=e360]: 11/11/26, 1:09 AM
+        - generic "notifguest_1794359159@example.com" [ref=e37]
+        - button "Logout" [ref=e38] [cursor=pointer]
+  - main [ref=e12]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - heading "Available Resources" [level=2] [ref=e42]
+        - paragraph [ref=e43]: Explore resources ready for rent.
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]: Location
+            - textbox "Location" [ref=e49]:
+              - /placeholder: e.g. Miami, FL
+          - generic [ref=e53]:
+            - generic [ref=e54]: Check-in Date
+            - textbox "Check-in Date" [ref=e55]
+          - generic [ref=e56]:
+            - generic [ref=e57]: Check-out Date
+            - textbox "Check-out Date" [ref=e58]
+        - generic [ref=e59]:
+          - textbox "Search by name or keyword..." [ref=e61]
+          - generic [ref=e64]:
+            - button "Clear" [ref=e65] [cursor=pointer]
+            - button "Search" [ref=e66] [cursor=pointer]
+      - generic [ref=e67]:
+        - link "edqwswededqwsdqweqwsed edqwswededqwsdqweqwsed 21sd $12 /day" [ref=e68] [cursor=pointer]:
+          - /url: /listing/6ad4d309471371ad34dfd888
+          - img "edqwswededqwsdqweqwsed" [ref=e70]
+          - generic [ref=e71]:
+            - generic [ref=e72]:
+              - heading "edqwswededqwsdqweqwsed" [level=3] [ref=e73]
+              - paragraph [ref=e74]: 21sd
+            - generic [ref=e78]:
+              - generic [ref=e79]: $12
+              - generic [ref=e80]: /day
+        - link "Excavator fedf $500 /day" [ref=e81] [cursor=pointer]:
+          - /url: /listing/6a317c4af073640b0670ae94
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - heading "Excavator" [level=3] [ref=e87]
+              - paragraph [ref=e88]: fedf
+            - generic [ref=e92]:
+              - generic [ref=e93]: $500
+              - generic [ref=e94]: /day
+        - link "mjhgjugfhfhrt hgfh $3 /day" [ref=e95] [cursor=pointer]:
+          - /url: /listing/6a317669f073640b0670ae93
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - heading "mjhgjugfhfhrt" [level=3] [ref=e101]
+              - paragraph [ref=e102]: hgfh
+            - generic [ref=e106]:
+              - generic [ref=e107]: $3
+              - generic [ref=e108]: /day
+        - link "Test13 fdsvgf $324 /day" [ref=e109] [cursor=pointer]:
+          - /url: /listing/6a317626f073640b0670ae92
+          - generic [ref=e113]:
+            - generic [ref=e114]:
+              - heading "Test13" [level=3] [ref=e115]
+              - paragraph [ref=e116]: fdsvgf
+            - generic [ref=e120]:
+              - generic [ref=e121]: $324
+              - generic [ref=e122]: /day
+        - link "Test12 ferf $8 /day" [ref=e123] [cursor=pointer]:
+          - /url: /listing/6a317619f073640b0670ae91
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - heading "Test12" [level=3] [ref=e129]
+              - paragraph [ref=e130]: ferf
+            - generic [ref=e134]:
+              - generic [ref=e135]: $8
+              - generic [ref=e136]: /day
+        - link "dcsfwefwefwe fgerwf $4 /day" [ref=e137] [cursor=pointer]:
+          - /url: /listing/6a317070f073640b0670ae90
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - heading "dcsfwefwefwe" [level=3] [ref=e143]
+              - paragraph [ref=e144]: fgerwf
+            - generic [ref=e148]:
+              - generic [ref=e149]: $4
+              - generic [ref=e150]: /day
+        - link "Teapot Chalet Test City $100 /day" [ref=e151] [cursor=pointer]:
+          - /url: /listing/6a316e65f073640b0670ae8f
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - heading "Teapot Chalet" [level=3] [ref=e157]
+              - paragraph [ref=e158]: Test City
+            - generic [ref=e162]:
+              - generic [ref=e163]: $100
+              - generic [ref=e164]: /day
+        - link "Panoramic Penthouse Sydney, NSW, Australia $500 /day" [ref=e165] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae8e
+          - generic [ref=e169]:
+            - generic [ref=e170]:
+              - heading "Panoramic Penthouse" [level=3] [ref=e171]
+              - paragraph [ref=e172]: Sydney, NSW, Australia
+            - generic [ref=e176]:
+              - generic [ref=e177]: $500
+              - generic [ref=e178]: /day
+        - link "High-End Road Bike Mallorca, Spain $45 /day" [ref=e179] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae8d
+          - generic [ref=e183]:
+            - generic [ref=e184]:
+              - heading "High-End Road Bike" [level=3] [ref=e185]
+              - paragraph [ref=e186]: Mallorca, Spain
+            - generic [ref=e190]:
+              - generic [ref=e191]: $45
+              - generic [ref=e192]: /day
+        - link "Professional DJ Equipment Set London, UK $110 /day" [ref=e193] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae8c
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - heading "Professional DJ Equipment Set" [level=3] [ref=e199]
+              - paragraph [ref=e200]: London, UK
+            - generic [ref=e204]:
+              - generic [ref=e205]: $110
+              - generic [ref=e206]: /day
+        - link "Vintage Campervan Reykjavik, Iceland $120 /day" [ref=e207] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae8b
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - heading "Vintage Campervan" [level=3] [ref=e213]
+              - paragraph [ref=e214]: Reykjavik, Iceland
+            - generic [ref=e218]:
+              - generic [ref=e219]: $120
+              - generic [ref=e220]: /day
+        - link "Tesla Model 3 Rental San Francisco, CA, USA $75 /day" [ref=e221] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae8a
+          - generic [ref=e225]:
+            - generic [ref=e226]:
+              - heading "Tesla Model 3 Rental" [level=3] [ref=e227]
+              - paragraph [ref=e228]: San Francisco, CA, USA
+            - generic [ref=e232]:
+              - generic [ref=e233]: $75
+              - generic [ref=e234]: /day
+        - link "Seaside Cycladic Home Santorini, Greece $290 /day" [ref=e235] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae89
+          - generic [ref=e239]:
+            - generic [ref=e240]:
+              - heading "Seaside Cycladic Home" [level=3] [ref=e241]
+              - paragraph [ref=e242]: Santorini, Greece
+            - generic [ref=e246]:
+              - generic [ref=e247]: $290
+              - generic [ref=e248]: /day
+        - link "Charming Tuscan Farmhouse Siena, Tuscany, Italy $220 /day" [ref=e249] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae88
+          - generic [ref=e253]:
+            - generic [ref=e254]:
+              - heading "Charming Tuscan Farmhouse" [level=3] [ref=e255]
+              - paragraph [ref=e256]: Siena, Tuscany, Italy
+            - generic [ref=e260]:
+              - generic [ref=e261]: $220
+              - generic [ref=e262]: /day
+        - link "Minimalist Tokyo Studio Shibuya, Tokyo, Japan $95 /day" [ref=e263] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae87
+          - generic [ref=e267]:
+            - generic [ref=e268]:
+              - heading "Minimalist Tokyo Studio" [level=3] [ref=e269]
+              - paragraph [ref=e270]: Shibuya, Tokyo, Japan
+            - generic [ref=e274]:
+              - generic [ref=e275]: $95
+              - generic [ref=e276]: /day
+        - link "Cozy Lakefront Cabin Lake Placid, NY, USA $140 /day" [ref=e277] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae86
+          - generic [ref=e281]:
+            - generic [ref=e282]:
+              - heading "Cozy Lakefront Cabin" [level=3] [ref=e283]
+              - paragraph [ref=e284]: Lake Placid, NY, USA
+            - generic [ref=e288]:
+              - generic [ref=e289]: $140
+              - generic [ref=e290]: /day
+        - link "Luxury Desert Oasis Villa Palm Springs, CA, USA $400 /day" [ref=e291] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae85
+          - generic [ref=e295]:
+            - generic [ref=e296]:
+              - heading "Luxury Desert Oasis Villa" [level=3] [ref=e297]
+              - paragraph [ref=e298]: Palm Springs, CA, USA
+            - generic [ref=e302]:
+              - generic [ref=e303]: $400
+              - generic [ref=e304]: /day
+        - link "Serene Forest Treehouse Portland, OR, USA $150 /day" [ref=e305] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae84
+          - generic [ref=e309]:
+            - generic [ref=e310]:
+              - heading "Serene Forest Treehouse" [level=3] [ref=e311]
+              - paragraph [ref=e312]: Portland, OR, USA
+            - generic [ref=e316]:
+              - generic [ref=e317]: $150
+              - generic [ref=e318]: /day
+        - link "Historic Canal House Apartment Amsterdam, Netherlands $195 /day" [ref=e319] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae83
+          - generic [ref=e323]:
+            - generic [ref=e324]:
+              - heading "Historic Canal House Apartment" [level=3] [ref=e325]
+              - paragraph [ref=e326]: Amsterdam, Netherlands
+            - generic [ref=e330]:
+              - generic [ref=e331]: $195
+              - generic [ref=e332]: /day
+        - link "Tropical Beachfront Bungalow Maui, Hawaii, USA $320 /day" [ref=e333] [cursor=pointer]:
+          - /url: /listing/6a316b1cf073640b0670ae82
+          - generic [ref=e337]:
+            - generic [ref=e338]:
+              - heading "Tropical Beachfront Bungalow" [level=3] [ref=e339]
+              - paragraph [ref=e340]: Maui, Hawaii, USA
+            - generic [ref=e344]:
+              - generic [ref=e345]: $320
+              - generic [ref=e346]: /day
+      - generic [ref=e347]:
+        - button "Previous" [disabled] [ref=e348]
+        - generic [ref=e349]: Page 1 of 2
+        - button "Next" [ref=e350] [cursor=pointer]
