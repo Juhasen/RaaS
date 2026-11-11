@@ -25,9 +25,9 @@ export class ListingShellComponent {
   private readonly platformId = inject(PLATFORM_ID);
 
   public readonly notifications = signal<NotificationItem[]>([]);
-  public readonly notificationsOpen = signal<boolean>(false);
-  public readonly notificationsLoading = signal<boolean>(false);
-  public readonly notificationsError = signal<string | null>(null);
+  public readonly notificationsOpen = signal(false);
+  public readonly notificationsLoading = signal(false);
+  public readonly notificationsError = signal<string | undefined>(undefined);
 
   constructor() {
     effect(() => {
@@ -41,7 +41,7 @@ export class ListingShellComponent {
         } else {
           this.notifications.set([]);
           this.notificationsLoading.set(false);
-          this.notificationsError.set(null);
+          this.notificationsError.set(undefined);
           this.notificationsOpen.set(false);
         }
       });
@@ -59,7 +59,7 @@ export class ListingShellComponent {
 
   public loadNotifications(userId: string): void {
     this.notificationsLoading.set(true);
-    this.notificationsError.set(null);
+    this.notificationsError.set(undefined);
     this.notificationService.getUserNotifications(userId).subscribe({
       next: (res) => {
         if (this.authService.currentUser()?.id !== userId) {
